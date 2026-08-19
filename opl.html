@@ -1,0 +1,843 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ArcGIS Maps Demo</title>
+    
+    <!-- ArcGIS Maps SDK CSS -->
+    <link rel="stylesheet" href="https://js.arcgis.com/4.28/esri/themes/light/main.css">
+    
+    <!-- Esri Calcite CSS -->
+    <link rel="stylesheet" href="https://js.arcgis.com/calcite-components/2.8.4/calcite.css">
+    
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: "Avenir Next", "Helvetica Neue", sans-serif;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        #header {
+            background: linear-gradient(135deg, #0079c1 0%, #003d7a 100%);
+            color: white;
+            padding: 12px 16px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            z-index: 10;
+        }
+
+        #header h1 {
+            font-size: 24px;
+            font-weight: 600;
+            letter-spacing: -0.5px;
+        }
+
+        .main-container {
+            display: flex;
+            flex: 1;
+            min-height: 0;
+        }
+
+        #mapContainer {
+            flex: 1;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .esri-view {
+            width: 100%;
+            height: 100%;
+        }
+
+        .sidebar {
+            flex: 0 0 33.333%;
+            width: 33.333%;
+            min-width: 0;
+            background: white;
+            border-left: 1px solid #e0e0e0;
+            display: flex;
+            flex-direction: column;
+            box-shadow: -2px 0 8px rgba(0, 0, 0, 0.05);
+            overflow: hidden;
+        }
+
+        .sidebar-header {
+            padding: 16px;
+            border-bottom: 1px solid #e0e0e0;
+            background: #f8f9fa;
+        }
+
+        .sidebar-content {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            min-height: 0;
+        }
+
+        calcite-tabs {
+            display: flex;
+            flex-direction: column;
+            flex: 1;
+            width: 100%;
+            height: 100%;
+            min-height: 0;
+        }
+
+        calcite-tab-nav {
+            border-bottom: 1px solid #e0e0e0;
+        }
+
+        calcite-tab {
+            display: none;
+            width: 100%;
+            height: 100%;
+            min-width: 0;
+            min-height: 0;
+            overflow: hidden;
+        }
+
+        calcite-tab[selected] {
+            display: flex;
+            flex-direction: column;
+            flex: 1 1 auto;
+        }
+
+        .tab-content {
+            flex: 1 1 auto;
+            width: 100%;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            overflow-y: auto;
+            padding: 16px;
+            min-height: 0;
+        }
+
+        @media (max-width: 800px) {
+            .main-container {
+                flex-direction: column;
+            }
+
+            #mapContainer,
+            .sidebar {
+                flex: 1 1 50%;
+                width: 100%;
+            }
+        }
+
+        .content-item {
+            padding: 12px;
+            background: #f8f9fa;
+            border-radius: 4px;
+            margin-bottom: 8px;
+            border-left: 3px solid #0079c1;
+            transition: all 0.2s ease;
+        }
+
+        .content-item:hover {
+            background: #e8ecf1;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        .item-title {
+            font-weight: 600;
+            font-size: 13px;
+            color: #1f2223;
+            margin-bottom: 4px;
+            word-break: break-word;
+        }
+
+        .item-type {
+            font-size: 11px;
+            color: #666;
+            margin-bottom: 8px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .item-actions {
+            display: flex;
+            gap: 8px;
+        }
+
+        .item-actions calcite-button {
+            flex: 1;
+        }
+
+        .login-section {
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+        }
+
+        .user-info {
+            padding: 12px;
+            background: #e8f4f8;
+            border-radius: 4px;
+            border-left: 3px solid #0079c1;
+        }
+
+        .user-info p {
+            font-size: 13px;
+            color: #1f2223;
+            margin: 4px 0;
+        }
+
+        .user-info strong {
+            color: #0079c1;
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 24px 16px;
+            color: #666;
+        }
+
+        .empty-state-icon {
+            font-size: 48px;
+            margin-bottom: 12px;
+            opacity: 0.5;
+        }
+
+        .empty-state p {
+            font-size: 13px;
+            line-height: 1.5;
+        }
+
+        .layer-item {
+            padding: 12px;
+            background: #f8f9fa;
+            border-radius: 4px;
+            margin-bottom: 8px;
+            border-left: 3px solid #0079c1;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .layer-item-info {
+            flex: 1;
+            min-width: 0;
+        }
+
+        .layer-item-title {
+            font-weight: 600;
+            font-size: 13px;
+            color: #1f2223;
+            word-break: break-word;
+        }
+
+        .layer-item-type {
+            font-size: 11px;
+            color: #666;
+            margin-top: 2px;
+        }
+
+        .layer-item-actions {
+            display: flex;
+            gap: 4px;
+        }
+
+        calcite-button {
+            --calcite-button-height: 28px;
+        }
+
+        .search-section {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            padding-bottom: 12px;
+        }
+
+        .search-input-wrapper {
+            display: flex;
+            gap: 8px;
+        }
+
+        calcite-input {
+            flex: 1;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 16px;
+            color: #666;
+        }
+
+        .error-message {
+            background: #fee;
+            border-left: 3px solid #d00;
+            padding: 12px;
+            border-radius: 4px;
+            color: #933;
+            font-size: 12px;
+            margin-bottom: 8px;
+        }
+
+        .success-message {
+            background: #efe;
+            border-left: 3px solid #0a0;
+            padding: 12px;
+            border-radius: 4px;
+            color: #060;
+            font-size: 12px;
+            margin-bottom: 8px;
+        }
+
+        /* Calcite overrides */
+        calcite-button {
+            width: 100%;
+        }
+
+        calcite-tab-nav::part(container) {
+            border-bottom: 1px solid #e0e0e0;
+        }
+
+        /* Scrollbar styling */
+        .tab-content::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        .tab-content::-webkit-scrollbar-track {
+            background: transparent;
+        }
+
+        .tab-content::-webkit-scrollbar-thumb {
+            background: #c0c0c0;
+            border-radius: 3px;
+        }
+
+        .tab-content::-webkit-scrollbar-thumb:hover {
+            background: #999;
+        }
+    </style>
+</head>
+<body>
+    <!-- Header -->
+    <div id="header">
+        <h1>🗺️ ArcGIS Maps Demo</h1>
+    </div>
+
+    <!-- Main Container -->
+    <div class="main-container">
+        <!-- Map Container -->
+        <div id="mapContainer"></div>
+
+        <!-- Sidebar -->
+        <div class="sidebar">
+            <calcite-tabs>
+                <calcite-tab-nav slot="title-group">
+                    <calcite-tab-title selected>My Content</calcite-tab-title>
+                    <calcite-tab-title>ArcGIS Online</calcite-tab-title>
+                    <calcite-tab-title>Living Atlas</calcite-tab-title>
+                </calcite-tab-nav>
+
+                <!-- Tab 1: My Content -->
+                <calcite-tab selected>
+                    <div class="tab-content">
+                        <div id="contentSection"></div>
+                    </div>
+                </calcite-tab>
+
+                <!-- Tab 2: ArcGIS Online -->
+                <calcite-tab>
+                    <div class="tab-content">
+                        <div class="search-section">
+                            <div class="search-input-wrapper">
+                                <calcite-input
+                                    id="arcgisOnlineSearch"
+                                    placeholder="Search ArcGIS Online..."
+                                    type="text">
+                                </calcite-input>
+                            </div>
+                            <calcite-button
+                                id="searchArcgisOnlineBtn"
+                                width="full">
+                                Search
+                            </calcite-button>
+                        </div>
+                        <div id="arcgisOnlineResults"></div>
+                    </div>
+                </calcite-tab>
+
+                <!-- Tab 3: Living Atlas -->
+                <calcite-tab>
+                    <div class="tab-content">
+                        <div class="search-section">
+                            <div class="search-input-wrapper">
+                                <calcite-input 
+                                    id="livingAtlasSearch"
+                                    placeholder="Search Living Atlas..."
+                                    type="text">
+                                </calcite-input>
+                            </div>
+                            <calcite-button 
+                                id="searchLivingAtlasBtn"
+                                width="full">
+                                Search
+                            </calcite-button>
+                        </div>
+                        <div id="livingAtlasResults"></div>
+                    </div>
+                </calcite-tab>
+
+            </calcite-tabs>
+        </div>
+    </div>
+
+    <!-- ArcGIS Maps SDK -->
+    <script src="https://js.arcgis.com/4.28/"></script>
+
+    <!-- Esri Calcite Components -->
+    <script type="module" src="https://js.arcgis.com/calcite-components/2.8.4/calcite.esm.js"></script>
+
+    <!-- Application Script -->
+    <script>
+        const require = window.require;
+
+        // ArcGIS Online OAuth Configuration
+        const ARCGIS_CLIENT_ID = "xMx4n0zc6KEcz2Rf";
+        const PORTAL_URL = "https://www.arcgis.com";
+        const REDIRECT_URL = `${window.location.origin}${window.location.pathname}`;
+        const ARCGIS_OAUTH_URL = `${PORTAL_URL}/sharing/rest/oauth2/authorize?client_id=${ARCGIS_CLIENT_ID}&response_type=token&expiration=20160&redirect_uri=${encodeURIComponent(REDIRECT_URL)}&state=portal`;
+
+        let map, view, userPortal, currentUser, identityManager, oauthInfo;
+        // Initialize on DOM ready
+        require(["esri/Map", "esri/Basemap", "esri/layers/TileLayer", "esri/views/MapView", "esri/widgets/Zoom", "esri/widgets/Home", "esri/widgets/BasemapToggle", "esri/widgets/LayerList", "esri/identity/OAuthInfo", "esri/identity/IdentityManager"],
+        function(Map, Basemap, TileLayer, MapView, Zoom, Home, BasemapToggle, LayerList, OAuthInfo, IdentityManager) {
+            identityManager = IdentityManager;
+            oauthInfo = new OAuthInfo({
+                appId: ARCGIS_CLIENT_ID,
+                portalUrl: PORTAL_URL
+            });
+            identityManager.registerOAuthInfos([oauthInfo]);
+            registerOAuthRedirectCredential();
+
+            const imageryBasemap = new Basemap({
+                baseLayers: [new TileLayer({
+                    url: "https://services.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer"
+                })],
+                title: "Imagery",
+                id: "public-imagery"
+            });
+
+            const topographicBasemap = new Basemap({
+                baseLayers: [new TileLayer({
+                    url: "https://services.arcgisonline.com/ArcGIS/rest/services/World_Topo_Map/MapServer"
+                })],
+                title: "Topographic",
+                id: "public-topographic"
+            });
+            
+            // Create map
+            map = new Map({
+                basemap: imageryBasemap
+            });
+
+            // Create view
+            view = new MapView({
+                container: "mapContainer",
+                map: map,
+                center: [-118.2437, 34.0522],
+                zoom: 12,
+                popupEnabled: true,
+                ui: {
+                    components: []
+                }
+            });
+
+            // Add UI components
+            const zoom = new Zoom({
+                view: view
+            });
+            view.ui.add(zoom, "top-left");
+
+            const home = new Home({
+                view: view
+            });
+            view.ui.add(home, "top-left");
+
+            const toggle = new BasemapToggle({
+                view: view,
+                nextBasemap: topographicBasemap
+            });
+            view.ui.add(toggle, "top-left");
+
+            const layerList = new LayerList({
+                view: view
+            });
+            view.ui.add(layerList, "top-right");
+
+            // Initialize content section
+            initializeContentSection();
+
+            // Handle OAuth redirect
+            checkSignInStatus();
+        });
+
+        function checkSignInStatus() {
+            identityManager.checkSignInStatus(`${PORTAL_URL}/sharing`)
+                .then(loadUserContent)
+                .catch(showLoginUI);
+        }
+
+        function registerOAuthRedirectCredential() {
+            const oauthResponse = new URLSearchParams(window.location.hash.substring(1));
+            const token = oauthResponse.get("access_token");
+            if (!token) return;
+
+            const expiresIn = Number(oauthResponse.get("expires_in")) || 7200;
+            const expires = Date.now() + (expiresIn * 1000);
+            identityManager.registerToken({
+                server: `${PORTAL_URL}/sharing/rest`,
+                token: token,
+                expires: expires,
+                ssl: true
+            });
+            identityManager.registerToken({
+                server: `${PORTAL_URL}/sharing`,
+                token: token,
+                expires: expires,
+                ssl: true
+            });
+            window.history.replaceState({}, document.title, `${window.location.pathname}${window.location.search}`);
+        }
+
+        // Show login UI
+        function showLoginUI() {
+            const contentSection = document.getElementById('contentSection');
+            contentSection.innerHTML = `
+                <div class="login-section">
+                    <calcite-button 
+                        id="loginBtn"
+                        kind="brand"
+                        width="full">
+                        Login to ArcGIS Online
+                    </calcite-button>
+                    <p style="font-size: 12px; color: #666; text-align: center;">
+                        Sign in with your ArcGIS Online account to view and add your content to the map.
+                    </p>
+                </div>
+            `;
+
+            document.getElementById('loginBtn').addEventListener('click', () => {
+                window.location.assign(ARCGIS_OAUTH_URL);
+            });
+        }
+
+        // Load user content
+        function loadUserContent() {
+            const contentSection = document.getElementById('contentSection');
+            contentSection.innerHTML = '<div class="loading">Loading your content...</div>';
+
+            require(["esri/portal/Portal"], function(Portal) {
+                userPortal = new Portal({
+                    url: PORTAL_URL,
+                    authMode: "immediate"
+                });
+                userPortal.load().then(() => {
+                    currentUser = userPortal.user;
+                    displayUserInfo(currentUser);
+                    loadUserItems();
+                }).catch(error => {
+                    console.error("Error loading user:", error);
+                    showAuthError("Signed in, but the ArcGIS Online account could not be loaded.");
+                });
+            });
+        }
+
+        // Display user information
+        function displayUserInfo(user) {
+            const contentSection = document.getElementById('contentSection');
+            if (!contentSection) return;
+            const userInfoDiv = document.createElement('div');
+            userInfoDiv.className = 'user-info';
+            userInfoDiv.innerHTML = `
+                <p><strong>${user.fullName}</strong></p>
+                <p>${user.username}</p>
+                <calcite-button 
+                    id="logoutBtn"
+                    width="full"
+                    appearance="outline"
+                    scale="s">
+                    Logout
+                </calcite-button>
+            `;
+
+            const existingInfo = contentSection.querySelector('.user-info');
+            if (existingInfo) {
+                existingInfo.replaceWith(userInfoDiv);
+            } else {
+                contentSection.insertBefore(userInfoDiv, contentSection.firstChild);
+            }
+
+            document.getElementById('logoutBtn').addEventListener('click', logout);
+        }
+
+        // Load user items
+        function loadUserItems() {
+            require(["esri/request"], function(esriRequest) {
+                const userContentUrl = `${PORTAL_URL}/sharing/rest/content/users/${encodeURIComponent(currentUser.username)}`;
+                esriRequest(userContentUrl, {
+                    query: {
+                        f: "json",
+                        num: 100
+                    }
+                }).then(response => {
+                    const rootItems = response.data.items || [];
+                    const folderRequests = (response.data.folders || []).map(folder =>
+                        esriRequest(`${userContentUrl}/${folder.id}`, {
+                            query: { f: "json", num: 100 }
+                        }).then(folderResponse => folderResponse.data.items || [])
+                    );
+
+                    return Promise.all(folderRequests).then(folderItems =>
+                        rootItems.concat(...folderItems)
+                    );
+                }).then(items => {
+                    const supportedTypes = new Set([
+                        "Feature Service",
+                        "Map Service",
+                        "Image Service",
+                        "Vector Tile Service",
+                        "GeoJson"
+                    ]);
+                    displayItems(items.filter(item => supportedTypes.has(item.type)));
+                }).catch(error => {
+                    console.error("Error loading items:", error);
+                    document.getElementById('contentSection').innerHTML += `
+                        <div class="error-message">Failed to load your content</div>
+                    `;
+                });
+            });
+        }
+
+        // Display items
+        function displayItems(items) {
+            const contentSection = document.getElementById('contentSection');
+            const itemsContainer = contentSection.querySelector('.items-container') || 
+                                  (() => {
+                                      const div = document.createElement('div');
+                                      div.className = 'items-container';
+                                      contentSection.appendChild(div);
+                                      return div;
+                                  })();
+
+            if (items.length === 0) {
+                itemsContainer.innerHTML = `
+                    <div class="empty-state">
+                        <div class="empty-state-icon">📭</div>
+                        <p>No content items found</p>
+                    </div>
+                `;
+                return;
+            }
+
+            itemsContainer.innerHTML = '';
+            items.forEach(item => {
+                if (!item.url || !item.type) return;
+
+                const itemDiv = document.createElement('div');
+                itemDiv.className = 'content-item';
+                itemDiv.innerHTML = `
+                    <div class="item-title">${item.title}</div>
+                    <div class="item-type">${item.type}</div>
+                    <div class="item-actions">
+                        <calcite-button scale="s" appearance="outline" class="add-layer-btn" data-url="${item.url}" data-title="${item.title}">
+                            Add to Map
+                        </calcite-button>
+                    </div>
+                `;
+                itemsContainer.appendChild(itemDiv);
+
+                itemDiv.querySelector('.add-layer-btn').addEventListener('click', (e) => {
+                    addLayerToMap(item);
+                });
+            });
+        }
+
+        // Add layer to map
+        function addLayerToMap(item) {
+            require(["esri/layers/Layer", "esri/portal/PortalItem"], function(Layer, PortalItem) {
+                const portalItemProperties = { id: item.id };
+                if (userPortal) portalItemProperties.portal = userPortal;
+
+                Layer.fromPortalItem({
+                    portalItem: new PortalItem(portalItemProperties)
+                }).then(layer => {
+                    layer.title = item.title;
+                    map.add(layer);
+                    return layer.load().then(() => layer);
+                }).then(layer => {
+                    if (layer.fullExtent && !layer.fullExtent.isEmpty) {
+                        return view.goTo(layer.fullExtent.expand(1.1)).then(() => layer);
+                    }
+                    return layer;
+                }).then(() => {
+                    showSuccessMessage(`${item.title} added to map!`);
+                }).catch(error => {
+                    console.error("Error adding layer:", error);
+                    showErrorMessage(`Failed to add ${item.title}`);
+                });
+            });
+        }
+
+        // Search Living Atlas
+        document.addEventListener('DOMContentLoaded', function() {
+            const searchBtn = document.getElementById('searchLivingAtlasBtn');
+            if (searchBtn) {
+                searchBtn.addEventListener('click', searchLivingAtlas);
+            }
+
+            const onlineSearchBtn = document.getElementById('searchArcgisOnlineBtn');
+            onlineSearchBtn.addEventListener('click', searchArcgisOnline);
+
+            const onlineSearchInput = document.getElementById('arcgisOnlineSearch');
+            onlineSearchInput.addEventListener('keypress', (event) => {
+                if (event.key === 'Enter') searchArcgisOnline();
+            });
+
+            const searchInput = document.getElementById('livingAtlasSearch');
+            if (searchInput) {
+                searchInput.addEventListener('keypress', (e) => {
+                    if (e.key === 'Enter') {
+                        searchLivingAtlas();
+                    }
+                });
+            }
+        });
+
+        function searchArcgisOnline() {
+            const query = document.getElementById('arcgisOnlineSearch').value;
+            const resultsDiv = document.getElementById('arcgisOnlineResults');
+
+            if (!query.trim()) {
+                resultsDiv.innerHTML = '<div class="empty-state"><p>Enter a search term</p></div>';
+                return;
+            }
+
+            resultsDiv.innerHTML = '<div class="loading">Searching ArcGIS Online...</div>';
+            searchPortalItems(
+                `${query} AND type:("Feature Service" OR "Map Service" OR "Image Service" OR "Vector Tile Service" OR "Scene Service" OR "WMS" OR "WMTS" OR "KML")`,
+                resultsDiv,
+                "ArcGIS Online"
+            );
+        }
+
+        function searchLivingAtlas() {
+            const query = document.getElementById('livingAtlasSearch').value;
+            const resultsDiv = document.getElementById('livingAtlasResults');
+
+            if (!query.trim()) {
+                resultsDiv.innerHTML = '<div class="empty-state"><p>Enter a search term</p></div>';
+                return;
+            }
+
+            resultsDiv.innerHTML = '<div class="loading">Searching Living Atlas...</div>';
+            searchPortalItems(
+                query + ' AND owner:Esri AND type:("Feature Service" OR "Map Service" OR "Image Service")',
+                resultsDiv,
+                "Living Atlas"
+            );
+        }
+
+        function searchPortalItems(query, resultsDiv, sourceName) {
+            require(["esri/request"], function(esriRequest) {
+                esriRequest("https://www.arcgis.com/sharing/rest/search", {
+                    query: {
+                        q: query,
+                        f: "json",
+                        num: 20,
+                        sortField: "modified",
+                        sortOrder: "desc"
+                    }
+                }).then(response => {
+                    displayPortalItems(response.data.results, resultsDiv);
+                }).catch(error => {
+                    console.error(`Error searching ${sourceName}:`, error);
+                    resultsDiv.innerHTML = '<div class="error-message">Search failed</div>';
+                });
+            });
+        }
+
+        function displayPortalItems(items, resultsDiv) {
+            if (items.length === 0) {
+                resultsDiv.innerHTML = '<div class="empty-state"><p>No results found</p></div>';
+                return;
+            }
+
+            resultsDiv.innerHTML = '';
+            items.forEach(item => {
+                if (!item.url || !item.type) return;
+
+                const itemDiv = document.createElement('div');
+                itemDiv.className = 'content-item';
+                itemDiv.innerHTML = `
+                    <div class="item-title">${item.title}</div>
+                    <div class="item-type">${item.type}</div>
+                    <div class="item-actions">
+                        <calcite-button scale="s" appearance="outline" class="add-portal-btn">
+                            Add to Map
+                        </calcite-button>
+                    </div>
+                `;
+                resultsDiv.appendChild(itemDiv);
+
+                itemDiv.querySelector('.add-portal-btn').addEventListener('click', () => {
+                    addLayerToMap(item);
+                });
+            });
+        }
+
+        // Show success message
+        function showSuccessMessage(message) {
+            const contentSection = document.getElementById('contentSection');
+            if (!contentSection) return;
+            const msgDiv = document.createElement('div');
+            msgDiv.className = 'success-message';
+            msgDiv.textContent = message;
+            contentSection.insertBefore(msgDiv, contentSection.firstChild);
+            setTimeout(() => msgDiv.remove(), 3000);
+        }
+
+        // Show error message
+        function showErrorMessage(message) {
+            const contentSection = document.getElementById('contentSection');
+            if (!contentSection) return;
+            const msgDiv = document.createElement('div');
+            msgDiv.className = 'error-message';
+            msgDiv.textContent = message;
+            contentSection.insertBefore(msgDiv, contentSection.firstChild);
+            setTimeout(() => msgDiv.remove(), 3000);
+        }
+
+        function showAuthError(message) {
+            const contentSection = document.getElementById('contentSection');
+            if (!contentSection) return;
+            contentSection.innerHTML = `<div class="error-message">${message}</div>`;
+        }
+
+        // Logout
+        function logout() {
+            identityManager.destroyCredentials();
+            currentUser = null;
+            userPortal = null;
+            showLoginUI();
+        }
+
+        // Initialize content section on load
+        function initializeContentSection() {
+            const contentSection = document.getElementById('contentSection');
+            contentSection.innerHTML = '<div class="loading">Loading...</div>';
+        }
+    </script>
+</body>
+</html>
