@@ -1,0 +1,1745 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>ArcGIS for Industrial Digital Twin &amp; 3D — Reference Architecture</title>
+<style>
+/* ── Calcite Design System tokens (light) ───────────────────────────── */
+:root{
+  --calcite-color-brand:#007AC2;
+  --calcite-color-brand-hover:#00619B;
+  --calcite-color-brand-press:#004874;
+  --calcite-color-background:#F8F8F8;
+  --calcite-color-foreground-1:#FFFFFF;
+  --calcite-color-foreground-2:#F3F3F3;
+  --calcite-color-foreground-3:#EAEAEA;
+  --calcite-color-text-1:#151515;
+  --calcite-color-text-2:#4A4A4A;
+  --calcite-color-text-3:#6A6A6A;
+  --calcite-color-text-inverse:#FFFFFF;
+  --calcite-color-border-1:#D4D4D4;
+  --calcite-color-border-2:#DFDFDF;
+  --calcite-color-border-3:#EAEAEA;
+  --calcite-color-status-success:#35AC46;
+  --calcite-color-status-warning:#EDD317;
+  --calcite-color-status-danger:#D83020;
+  --calcite-color-info:#00619B;
+  --calcite-ui-icon-color:currentColor;
+  --cal-font:"Avenir Next World","Avenir Next",Avenir,"Segoe UI","Helvetica Neue",Helvetica,Arial,sans-serif;
+  --cal-mono:"Consolas","Monaco","Andale Mono",monospace;
+  --shadow-1:0 1px 2px rgba(0,0,0,.08),0 0 4px rgba(0,0,0,.04);
+  --shadow-2:0 2px 6px rgba(0,0,0,.10),0 0 8px rgba(0,0,0,.05);
+}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{
+  margin:0;font-family:var(--cal-font);
+  background:var(--calcite-color-background);color:var(--calcite-color-text-1);
+  font-size:14px;line-height:1.45;-webkit-font-smoothing:antialiased;
+}
+h1,h2,h3,h4{margin:0;font-weight:500;letter-spacing:normal}
+p{margin:0 0 .75rem}
+a{color:var(--calcite-color-brand);text-decoration:none}
+a:hover{text-decoration:underline}
+
+/* ── Shell ──────────────────────────────────────────────────────────── */
+.shell{max-width:1500px;margin:0 auto;background:var(--calcite-color-background)}
+
+/* Calcite navigation bar */
+.c-nav{background:var(--calcite-color-brand);color:#fff;padding:0 1.5rem;
+  display:flex;align-items:center;gap:1rem;min-height:64px;box-shadow:var(--shadow-1)}
+.c-nav .mark{width:30px;height:30px;flex:none;border:2px solid rgba(255,255,255,.85);
+  border-radius:50%;position:relative}
+.c-nav .mark::before,.c-nav .mark::after{content:"";position:absolute;inset:0;
+  border:1px solid rgba(255,255,255,.6);border-radius:50%}
+.c-nav .mark::before{transform:scaleX(.42)}
+.c-nav .mark::after{transform:scaleY(.42)}
+.c-nav h1{font-size:1.05rem;font-weight:400;line-height:1.2}
+.c-nav .sub{font-size:.75rem;opacity:.85;font-weight:300}
+.c-nav .spacer{flex:1}
+.rel-badge{font-size:.7rem;background:rgba(255,255,255,.18);border:1px solid rgba(255,255,255,.35);
+  padding:.25rem .55rem;white-space:nowrap}
+.cloudpick{display:flex;align-items:center;gap:0;flex:none}
+.cloudpick .cplabel{font-size:.65rem;text-transform:uppercase;letter-spacing:.06em;
+  opacity:.8;margin-inline-end:.5rem}
+.cbtn{appearance:none;font-family:inherit;font-size:.72rem;padding:.3rem .7rem;cursor:pointer;
+  background:rgba(255,255,255,.1);color:#fff;border:1px solid rgba(255,255,255,.4);
+  border-inline-start-width:0;transition:background .15s}
+.cbtn:first-of-type{border-inline-start-width:1px}
+.cbtn:hover{background:rgba(255,255,255,.22)}
+.cbtn.active{background:#fff;color:var(--calcite-color-brand-press);font-weight:600;
+  border-color:#fff}
+/* inline cloud-swapped terms */
+.tok{border-bottom:1px dotted rgba(0,122,194,.55);white-space:nowrap}
+body[data-cloud="neutral"] .cloudonly{display:none!important}
+body[data-cloud="aws"] .cloudonly[data-only="azure"]{display:none!important}
+body[data-cloud="azure"] .cloudonly[data-only="aws"]{display:none!important}
+
+/* Intro strip */
+.intro{background:var(--calcite-color-foreground-1);border-bottom:1px solid var(--calcite-color-border-1);
+  padding:1.1rem 1.5rem;display:flex;gap:2rem;flex-wrap:wrap;align-items:flex-start}
+.intro .lede{flex:1 1 520px;max-width:900px;color:var(--calcite-color-text-2);font-size:.875rem}
+.intro .lede strong{color:var(--calcite-color-text-1);font-weight:600}
+.intro .aside{flex:0 1 320px;border-inline-start:3px solid var(--calcite-color-brand);
+  padding-inline-start:.85rem;font-size:.8rem;color:var(--calcite-color-text-2)}
+.intro .aside b{display:block;color:var(--calcite-color-text-1);font-size:.72rem;
+  text-transform:uppercase;letter-spacing:.05em;margin-bottom:.25rem}
+
+/* Calcite tabs */
+.c-tabs{background:var(--calcite-color-foreground-1);border-bottom:1px solid var(--calcite-color-border-1);
+  display:flex;gap:0;padding:0 1rem;overflow-x:auto;position:sticky;top:0;z-index:40}
+.c-tab{appearance:none;background:none;border:none;border-bottom:3px solid transparent;
+  font-family:inherit;font-size:.8125rem;color:var(--calcite-color-text-3);padding:.85rem 1rem .7rem;
+  cursor:pointer;white-space:nowrap;transition:color .15s,border-color .15s}
+.c-tab:hover{color:var(--calcite-color-text-1);border-bottom-color:var(--calcite-color-border-1)}
+.c-tab[aria-selected="true"]{color:var(--calcite-color-brand-press);border-bottom-color:var(--calcite-color-brand);font-weight:500}
+
+.view{display:none;padding:1.5rem}
+.view.active{display:block}
+.view-head{margin-bottom:1.25rem}
+.view-head h2{font-size:1.25rem;margin-bottom:.35rem}
+.view-head p{color:var(--calcite-color-text-2);font-size:.875rem}
+
+/* Calcite block / card */
+.block{background:var(--calcite-color-foreground-1);border:1px solid var(--calcite-color-border-1);
+  box-shadow:var(--shadow-1);margin-bottom:1rem}
+.block>header{padding:.6rem .9rem;border-bottom:1px solid var(--calcite-color-border-3);
+  display:flex;align-items:baseline;gap:.6rem;background:var(--calcite-color-foreground-1)}
+.block>header h3{font-size:.9375rem}
+.block>header .hint{font-size:.75rem;color:var(--calcite-color-text-3)}
+.block .body{padding:.9rem}
+
+/* Chips = products */
+.chip{display:inline-flex;align-items:center;gap:.35rem;background:var(--calcite-color-foreground-1);
+  border:1px solid var(--calcite-color-border-1);border-inline-start:3px solid var(--calcite-color-border-1);
+  padding:.3rem .5rem;font-size:.75rem;line-height:1.25;color:var(--calcite-color-text-1);
+  cursor:pointer;transition:opacity .2s,border-color .2s,background .2s,box-shadow .2s;
+  text-align:start;width:100%;font-family:inherit}
+.chip:hover{box-shadow:var(--shadow-2);border-color:var(--calcite-color-brand)}
+.chip .dot{width:6px;height:6px;flex:none;border-radius:50%;background:var(--calcite-color-text-3)}
+.chip[data-status="beta"] .dot{background:var(--calcite-color-status-warning)}
+.chip[data-status="new"] .dot{background:var(--calcite-color-status-success)}
+.chip[data-status="dep"] .dot{background:var(--calcite-color-status-danger)}
+.chip[data-status="ext"] .dot{background:#9E9E9E}
+.chip[data-status="custom"] .dot{background:#7A2EA6}
+.chip.on{border-inline-start-color:var(--calcite-color-brand);background:#F0F8FD;
+  border-color:var(--calcite-color-brand);font-weight:500}
+.chip.off{opacity:.22;filter:grayscale(1)}
+.chip .lbl{flex:1}
+
+/* Tier diagram — four columns reading left to right:
+   capture → data → services → presentation */
+.tiers{display:grid;
+  grid-template-columns:minmax(0,1fr) 54px minmax(0,1fr) 54px minmax(0,1fr) 54px minmax(0,1fr);
+  gap:0;align-items:stretch}
+.rail,.tier{min-width:0}
+.rail{background:var(--calcite-color-foreground-1);border:1px solid var(--calcite-color-border-1);
+  border-top:3px solid #955700;box-shadow:var(--shadow-1);display:flex;flex-direction:column}
+.rail h4,.tier h4{padding:.6rem .75rem .1rem;font-weight:700;font-size:.8125rem;letter-spacing:.01em}
+.tsub{font-size:.68rem;color:var(--calcite-color-text-3);padding:0 .75rem .5rem;
+  border-bottom:1px solid var(--calcite-color-border-3);margin-bottom:.1rem}
+.rail h4{color:#955700}
+.rail .rbody{padding:.6rem .7rem;display:flex;flex-direction:column;gap:.3rem;flex:1}
+.rail .rgroup{font-size:.8125rem;font-weight:700;letter-spacing:.01em;
+  color:#955700;margin-top:.75rem;margin-bottom:.25rem;padding-bottom:.18rem;
+  border-bottom:2px solid #E8D5B5}
+.rail .rgroup:first-child{margin-top:0}
+.tier{background:var(--calcite-color-foreground-1);border:1px solid var(--calcite-color-border-1);
+  box-shadow:var(--shadow-1);position:relative;display:flex;flex-direction:column}
+.tier.t3{border-top:3px solid #7A2EA6}
+.tier.t2{border-top:3px solid var(--calcite-color-brand)}
+.tier.t1{border-top:3px solid #0F6E5C}
+.tier .tbody{padding:.6rem .7rem;display:flex;flex-direction:column;gap:.3rem;flex:1}
+.tier .grouplabel{font-size:.8125rem;font-weight:700;letter-spacing:.01em;
+  margin-top:.6rem;padding-bottom:.2rem;border-bottom:2px solid currentColor}
+.tier .grouplabel:first-child{margin-top:0}
+/* group labels take the colour of the tier they sit in */
+.tier.t3 .grouplabel{color:#7A2EA6;border-bottom-color:#DCC4EB}
+.tier.t2 .grouplabel{color:var(--calcite-color-brand-press);border-bottom-color:#A9D5EE}
+.tier.t1 .grouplabel{color:#0F6E5C;border-bottom-color:#C8E3DC}
+.tier h4{font-size:.8125rem;font-weight:700;letter-spacing:.01em;text-transform:none;
+  color:var(--calcite-color-text-1)}
+.tier.t3 h4{color:#7A2EA6}
+.tier.t2 h4{color:var(--calcite-color-brand-press)}
+.tier.t1 h4{color:#0F6E5C}
+.rail h4{font-size:.8125rem;font-weight:700;letter-spacing:.01em;text-transform:none;color:#0F6E5C}
+.flowarrow{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:.2rem;
+  color:var(--calcite-color-brand);min-width:0}
+.flowarrow span{font-size:1.35rem;line-height:1}
+.flowarrow em{font-style:normal;font-size:.6rem;text-transform:uppercase;letter-spacing:.05em;
+  color:var(--calcite-color-text-3);font-weight:600}
+
+/* Pipeline board */
+.pipe{display:grid;grid-template-columns:repeat(5,1fr);gap:.6rem}
+.pipe .col{background:var(--calcite-color-foreground-1);border:1px solid var(--calcite-color-border-1);
+  box-shadow:var(--shadow-1);display:flex;flex-direction:column;min-width:0}
+.pipe .col>h4{font-size:.72rem;text-transform:uppercase;letter-spacing:.05em;color:var(--calcite-color-text-3);
+  padding:.55rem .7rem;border-bottom:1px solid var(--calcite-color-border-3);font-weight:600;
+  display:flex;justify-content:space-between;align-items:center;gap:.4rem}
+.pipe .col>h4 .n{background:var(--calcite-color-brand);color:#fff;font-size:.65rem;
+  width:17px;height:17px;display:grid;place-items:center;border-radius:50%;flex:none}
+.pipe .col .cbody{padding:.5rem;display:flex;flex-direction:column;gap:.3rem}
+.pipe .col .cbody .grouplabel{font-size:.75rem;font-weight:700;letter-spacing:.01em;
+  color:var(--calcite-color-brand-press);margin-top:.5rem;padding-bottom:.15rem;
+  border-bottom:2px solid #DCEAF4}
+.pipe .col .cbody .grouplabel:first-child{margin-top:0}
+/* multi-stage badge */
+.chip .multi{font-size:.6rem;font-weight:700;color:var(--calcite-color-brand-press);
+  background:#E4F1FA;border:1px solid #A9D5EE;padding:.05rem .22rem;flex:none;line-height:1.3}
+.chip.off .multi{opacity:.6}
+
+/* Filter toolbar */
+.toolbar{display:flex;flex-wrap:wrap;gap:.4rem;align-items:center;margin-bottom:.9rem;
+  background:var(--calcite-color-foreground-1);border:1px solid var(--calcite-color-border-1);
+  padding:.6rem .7rem;box-shadow:var(--shadow-1)}
+.toolbar .tlabel{font-size:.72rem;text-transform:uppercase;letter-spacing:.05em;
+  color:var(--calcite-color-text-3);font-weight:600;margin-inline-end:.3rem}
+.btn{appearance:none;font-family:inherit;font-size:.75rem;padding:.35rem .7rem;cursor:pointer;
+  background:var(--calcite-color-foreground-1);color:var(--calcite-color-text-2);
+  border:1px solid var(--calcite-color-border-1);transition:all .15s}
+.btn:hover{border-color:var(--calcite-color-brand);color:var(--calcite-color-brand-press)}
+.btn.active{background:var(--calcite-color-brand);border-color:var(--calcite-color-brand);color:#fff;font-weight:500}
+.btn.ghost{background:transparent;border-style:dashed}
+
+/* Cloud comparison table */
+#cloud-table th[scope="row"]{background:var(--calcite-color-foreground-2);font-weight:600;
+  color:var(--calcite-color-text-1);font-size:.78rem;vertical-align:top}
+#cloud-table td{transition:opacity .2s,background .2s;color:var(--calcite-color-text-2)}
+#cloud-table td.csel{background:#F0F8FD;box-shadow:inset 3px 0 0 var(--calcite-color-brand);
+  color:var(--calcite-color-text-1)}
+#cloud-table td.cdim{opacity:.42}
+.chip .cloudtag{font-size:.55rem;font-weight:700;letter-spacing:.03em;color:#fff;
+  background:var(--calcite-color-brand-press);padding:.08rem .25rem;flex:none;line-height:1.4}
+
+/* Narrative sections */
+.narr .lede{font-size:.85rem}
+.nargrid{display:grid;grid-template-columns:1fr 1fr;gap:.9rem;margin-top:.85rem}
+.nsec h4{font-size:.7rem;text-transform:uppercase;letter-spacing:.05em;font-weight:700;
+  color:var(--calcite-color-brand-press);margin-bottom:.3rem;padding-bottom:.2rem;
+  border-bottom:2px solid #DCEAF4}
+.nsec p{font-size:.8125rem;color:var(--calcite-color-text-2);margin:0}
+.fmtsec{margin-top:.85rem;background:var(--calcite-color-foreground-2);
+  border:1px solid var(--calcite-color-border-2);padding:.6rem .7rem}
+.fmtsec h4{font-size:.7rem;text-transform:uppercase;letter-spacing:.05em;font-weight:700;
+  color:var(--calcite-color-text-3);margin-bottom:.4rem}
+.fmtchain{display:flex;flex-wrap:wrap;gap:.3rem;align-items:center;font-size:.75rem}
+.fmtchain span{background:var(--calcite-color-foreground-1);border:1px solid var(--calcite-color-border-1);
+  border-inline-start:3px solid var(--calcite-color-brand);padding:.25rem .5rem;font-family:var(--cal-mono);
+  font-size:.72rem;color:var(--calcite-color-text-1)}
+.fmtchain i{color:var(--calcite-color-brand);font-style:normal;font-weight:700}
+@media (max-width:900px){.nargrid{grid-template-columns:1fr}}
+
+/* Narrative panel */
+.narr{background:var(--calcite-color-foreground-1);border:1px solid var(--calcite-color-border-1);
+  border-inline-start:3px solid var(--calcite-color-brand);box-shadow:var(--shadow-1);
+  padding:.85rem 1rem;margin-bottom:.9rem}
+.narr h3{font-size:.95rem;margin-bottom:.35rem}
+.narr p{font-size:.8125rem;color:var(--calcite-color-text-2);margin-bottom:.5rem}
+.narr .steps{display:flex;flex-wrap:wrap;gap:.3rem;font-size:.75rem;align-items:center}
+.narr .steps span{background:var(--calcite-color-foreground-2);border:1px solid var(--calcite-color-border-2);padding:.2rem .45rem}
+.narr .steps i{color:var(--calcite-color-text-3);font-style:normal}
+.caveat{margin-top:.55rem;font-size:.75rem;color:#8A5300;background:#FFF7E6;
+  border:1px solid #F3D9A0;border-inline-start:3px solid var(--calcite-color-status-warning);padding:.45rem .6rem}
+.caveat b{color:#6B4100}
+
+/* Tables */
+table{width:100%;border-collapse:collapse;font-size:.78rem;background:var(--calcite-color-foreground-1)}
+th,td{text-align:start;padding:.45rem .6rem;border-bottom:1px solid var(--calcite-color-border-3);vertical-align:top}
+thead th{background:var(--calcite-color-foreground-2);font-size:.7rem;text-transform:uppercase;
+  letter-spacing:.05em;color:var(--calcite-color-text-3);font-weight:600;position:sticky;top:44px;z-index:5}
+tbody tr:hover{background:#F7FBFE}
+td.mark{text-align:center;font-weight:600}
+.yes{color:var(--calcite-color-status-success)}
+.no{color:var(--calcite-color-border-1)}
+.partial{color:#C77E00}
+.tname{font-weight:500}
+.tnote{display:block;color:var(--calcite-color-text-3);font-size:.72rem;font-weight:400;margin-top:.1rem}
+
+/* Maturity ladder — compact, all five rungs visible without scrolling */
+.ladder{display:flex;flex-direction:column-reverse;gap:.35rem}
+.rung{background:var(--calcite-color-foreground-1);border:1px solid var(--calcite-color-border-1);
+  box-shadow:var(--shadow-1);display:grid;grid-template-columns:42px minmax(0,1fr) minmax(300px,400px);
+  gap:0;align-items:stretch}
+.rung .lv{background:var(--calcite-color-foreground-2);display:grid;place-items:center;
+  border-inline-end:1px solid var(--calcite-color-border-3);font-size:1.15rem;font-weight:400;
+  color:var(--calcite-color-brand)}
+.rung .mid{padding:.5rem .75rem}
+.rung .mid h3{font-size:.875rem;margin-bottom:.15rem}
+.rung .mid p{font-size:.775rem;line-height:1.35;color:var(--calcite-color-text-2);margin:0}
+.rung .prods{padding:.45rem .5rem;border-inline-start:1px solid var(--calcite-color-border-3);
+  display:flex;flex-flow:row wrap;align-content:flex-start;gap:.22rem;background:#FCFCFC}
+.rung .prods .chip{width:auto;font-size:.7rem;padding:.2rem .4rem;gap:.28rem}
+.rung .prods .chip .dot{width:5px;height:5px}
+.rung[data-lv="1"] .lv{color:#0F6E5C}
+.rung[data-lv="5"] .lv{color:#7A2EA6}
+
+/* Use case cards */
+.ucgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(400px,1fr));gap:.75rem}
+.uc{background:var(--calcite-color-foreground-1);border:1px solid var(--calcite-color-border-1);
+  border-top:3px solid var(--calcite-color-brand);box-shadow:var(--shadow-1);display:flex;flex-direction:column}
+.uc h3{font-size:.9375rem;padding:.7rem .85rem .1rem}
+.uc .q{font-size:.75rem;color:var(--calcite-color-text-3);padding:0 .85rem .6rem;font-style:italic}
+.uc .need{font-size:.8125rem;color:var(--calcite-color-text-2);padding:0 .85rem .65rem}
+.uc .plist{padding:.5rem .85rem;border-top:1px solid var(--calcite-color-border-3);
+  display:flex;flex-wrap:wrap;gap:.25rem;background:#FCFCFC}
+.uc .plist .chip{width:auto}
+.uc .watch{font-size:.75rem;padding:.5rem .85rem;border-top:1px solid var(--calcite-color-border-3);
+  color:#8A5300;background:#FFF7E6}
+.uc .watch b{color:#6B4100}
+
+/* Item type cards */
+.itemcat{font-size:.9rem;font-weight:700;color:var(--calcite-color-brand-press);
+  margin:1.1rem 0 .5rem;padding-bottom:.25rem;border-bottom:2px solid #A9D5EE}
+.itemcat:first-child{margin-top:0}
+.itemcard{background:var(--calcite-color-foreground-1);border:1px solid var(--calcite-color-border-1);
+  box-shadow:var(--shadow-1);margin-bottom:.5rem}
+.itemcard .ihead{display:flex;align-items:baseline;gap:.75rem;flex-wrap:wrap;
+  padding:.55rem .85rem;border-bottom:1px solid var(--calcite-color-border-3);
+  background:var(--calcite-color-foreground-2)}
+.itemcard .iname{font-size:.9375rem;font-weight:600;flex:1;min-width:220px}
+.itemcard .irest{font-family:var(--cal-mono);font-size:.7rem;font-weight:400;
+  color:var(--calcite-color-text-3);background:var(--calcite-color-foreground-1);
+  border:1px solid var(--calcite-color-border-2);padding:.1rem .35rem;margin-inline-start:.5rem;
+  white-space:nowrap}
+.isup{font-size:.65rem;text-transform:uppercase;letter-spacing:.05em;font-weight:700;
+  padding:.2rem .45rem;white-space:nowrap;border:1px solid}
+.sup-both{color:#1B6B29;border-color:#B5DCBB;background:#EFF8F0}
+.sup-ent{color:var(--calcite-color-brand-press);border-color:#A9D5EE;background:#F0F8FD}
+.sup-online{color:#7A2EA6;border-color:#DCC4EB;background:#F8F2FC}
+.sup-none{color:#6A6A6A;border-color:var(--calcite-color-border-1);background:var(--calcite-color-foreground-2)}
+.itemcard .icols{display:grid;grid-template-columns:2fr 1fr 1.6fr}
+.itemcard .icols>div{padding:.6rem .85rem;font-size:.78rem;color:var(--calcite-color-text-2)}
+.itemcard .icols>div+div{border-inline-start:1px solid var(--calcite-color-border-3)}
+.itemcard .icols>div:last-child{background:#FCFCFC}
+.itemcard .icols h4{font-size:.65rem;text-transform:uppercase;letter-spacing:.05em;
+  color:var(--calcite-color-text-3);font-weight:600;margin-bottom:.25rem}
+.itemcard .icols p{margin:0}
+.itemcard code{font-family:var(--cal-mono);font-size:.72rem;background:var(--calcite-color-foreground-2);
+  border:1px solid var(--calcite-color-border-3);padding:0 .2rem}
+@media (max-width:1000px){.itemcard .icols{grid-template-columns:1fr}
+  .itemcard .icols>div+div{border-inline-start:none;border-top:1px solid var(--calcite-color-border-3)}}
+
+/* Gap cards */
+.gapcard{background:var(--calcite-color-foreground-1);border:1px solid var(--calcite-color-border-1);
+  box-shadow:var(--shadow-1);margin-bottom:.75rem;border-inline-start:4px solid var(--calcite-color-border-1)}
+.gapcard[data-sev="high"]{border-inline-start-color:var(--calcite-color-status-danger)}
+.gapcard[data-sev="med"]{border-inline-start-color:#E68C00}
+.gapcard[data-sev="watch"]{border-inline-start-color:var(--calcite-color-brand)}
+.gapcard>header{padding:.7rem .9rem .5rem;display:flex;gap:.6rem;align-items:flex-start;flex-wrap:wrap}
+.gapcard>header h3{font-size:.9375rem;flex:1 1 320px}
+.sev{font-size:.65rem;text-transform:uppercase;letter-spacing:.05em;font-weight:600;
+  padding:.2rem .45rem;white-space:nowrap;border:1px solid}
+.sev.high{color:#A02015;border-color:#EFB8B2;background:#FDEEEC}
+.sev.med{color:#8A5300;border-color:#F3D9A0;background:#FFF7E6}
+.sev.watch{color:var(--calcite-color-brand-press);border-color:#A9D5EE;background:#F0F8FD}
+.area{font-size:.65rem;text-transform:uppercase;letter-spacing:.05em;color:var(--calcite-color-text-3);
+  border:1px solid var(--calcite-color-border-2);background:var(--calcite-color-foreground-2);padding:.2rem .45rem;white-space:nowrap}
+.gapcard .ev{padding:0 .9rem .7rem;font-size:.8125rem;color:var(--calcite-color-text-2)}
+.gapcard .cols{display:grid;grid-template-columns:1fr 1fr;gap:0;border-top:1px solid var(--calcite-color-border-3)}
+.gapcard .cols>div{padding:.65rem .9rem;font-size:.78rem;color:var(--calcite-color-text-2)}
+.gapcard .cols>div:first-child{border-inline-end:1px solid var(--calcite-color-border-3);background:#FCFCFC}
+.gapcard .cols h4{font-size:.65rem;text-transform:uppercase;letter-spacing:.05em;
+  color:var(--calcite-color-text-3);font-weight:600;margin-bottom:.25rem}
+@media (max-width:760px){.gapcard .cols{grid-template-columns:1fr}
+  .gapcard .cols>div:first-child{border-inline-end:none;border-bottom:1px solid var(--calcite-color-border-3)}}
+
+/* Legend */
+.legend{display:flex;flex-wrap:wrap;gap:1rem;font-size:.72rem;color:var(--calcite-color-text-3);
+  padding:.6rem .9rem;background:var(--calcite-color-foreground-2);border:1px solid var(--calcite-color-border-2);
+  margin-bottom:.9rem}
+.legend span{display:inline-flex;align-items:center;gap:.35rem}
+.legend i{width:8px;height:8px;border-radius:50%;display:inline-block}
+
+/* Detail flyout */
+.flyout{position:fixed;inset-block:0;inset-inline-end:0;width:380px;max-width:92vw;
+  background:var(--calcite-color-foreground-1);border-inline-start:1px solid var(--calcite-color-border-1);
+  box-shadow:-4px 0 16px rgba(0,0,0,.12);transform:translateX(105%);transition:transform .22s ease;
+  z-index:100;display:flex;flex-direction:column}
+.flyout.open{transform:translateX(0)}
+.flyout header{background:var(--calcite-color-foreground-2);border-bottom:1px solid var(--calcite-color-border-1);
+  padding:.75rem .9rem;display:flex;align-items:flex-start;gap:.5rem}
+.flyout header h3{font-size:1rem;flex:1}
+.flyout .close{appearance:none;background:none;border:none;font-size:1.2rem;cursor:pointer;
+  color:var(--calcite-color-text-3);line-height:1;padding:0 .2rem}
+.flyout .fbody{padding:.9rem;overflow:auto;font-size:.8125rem;color:var(--calcite-color-text-2)}
+.flyout .fbody dt{font-size:.68rem;text-transform:uppercase;letter-spacing:.05em;
+  color:var(--calcite-color-text-3);font-weight:600;margin-top:.85rem}
+.flyout .fbody dt:first-child{margin-top:0}
+.flyout .fbody dd{margin:.2rem 0 0}
+.pill{display:inline-block;font-size:.68rem;padding:.15rem .45rem;border:1px solid var(--calcite-color-border-1);
+  background:var(--calcite-color-foreground-2);margin:.15rem .2rem .15rem 0;color:var(--calcite-color-text-2)}
+.pill.b{border-color:var(--calcite-color-brand);color:var(--calcite-color-brand-press);background:#F0F8FD}
+
+/* Notes */
+.notes{max-width:920px}
+.notes ol{padding-inline-start:1.3rem}
+.notes li{margin-bottom:.6rem;font-size:.8125rem;color:var(--calcite-color-text-2)}
+.notes li b{color:var(--calcite-color-text-1)}
+.gap{background:#FFF7E6;border:1px solid #F3D9A0;border-inline-start:3px solid var(--calcite-color-status-warning);
+  padding:.6rem .8rem;margin-bottom:.5rem;font-size:.8125rem;color:#6B4100}
+.gap b{display:block;margin-bottom:.15rem}
+footer.pagefoot{padding:1.25rem 1.5rem;border-top:1px solid var(--calcite-color-border-1);
+  font-size:.72rem;color:var(--calcite-color-text-3);background:var(--calcite-color-foreground-1)}
+
+@media (max-width:1250px){
+  /* stack the four columns and rotate the connectors to point down */
+  .tiers{grid-template-columns:1fr;gap:.6rem}
+  .flowarrow{flex-direction:row;gap:.5rem;padding:.15rem}
+  .flowarrow span{transform:rotate(90deg);display:inline-block}
+}
+@media (max-width:1100px){
+  .pipe{grid-template-columns:repeat(2,1fr)}
+  .rung{grid-template-columns:42px 1fr}
+  .rung .prods{grid-column:1/-1;border-inline-start:none;border-top:1px solid var(--calcite-color-border-3)}
+}
+@media print{
+  .c-tabs,.toolbar,.flyout{display:none!important}
+  .view{display:block!important;page-break-after:always}
+}
+</style>
+</head>
+<body>
+<div class="shell">
+
+<nav class="c-nav">
+  <div class="mark" aria-hidden="true"></div>
+  <div>
+    <h1>ArcGIS for Industrial Digital Twin &amp; 3D</h1>
+    <div class="sub">Capability reference &middot; reality capture to operational twin</div>
+  </div>
+  <div class="spacer"></div>
+  <div class="cloudpick" role="group" aria-label="Cloud platform">
+    <span class="cplabel">Cloud</span>
+    <button class="cbtn active" data-cloud="neutral">Neutral</button>
+    <button class="cbtn" data-cloud="aws">AWS</button>
+    <button class="cbtn" data-cloud="azure">Azure</button>
+  </div>
+  <div class="rel-badge">ArcGIS Enterprise 12.1 &middot; ArcGIS Pro 3.7 &middot; Aug 2026</div>
+</nav>
+
+<div class="intro">
+  <div class="lede">
+    <p>A single view of how ArcGIS takes <strong>reality capture</strong> — laser scanning, drone photogrammetry, 360&deg; imagery, LiDAR — through ingest, processing, cataloging and serving, and out to desktop, web, field and immersive clients. The same content is sliced four ways so you can meet the audience where they are: as a <strong>tiered system diagram</strong>, as a <strong>data-type pipeline</strong>, as a <strong>deployment matrix</strong>, and as a <strong>maturity ladder</strong>.</p>
+    <p style="margin-bottom:0">Every product tile is clickable. Numbered markers <sup>[n]</sup> point to release-specific caveats in <a href="#" data-goto="notes">Release Notes</a>. Where the platform story is thin, say so &mdash; the <a href="#" data-goto="gaps">Key Gaps</a> tab is the working internal list.</p>
+  </div>
+  <div class="aside">
+    <b>Scope note</b>
+    Esri-centric by design. Third-party capture hardware and enterprise platforms are shown only as boundary boxes — integration patterns are described, not architected. Reality capture is treated as the primary source of the 3D environment; CAD/BIM is a secondary path for selected assets.
+  </div>
+</div>
+
+<div class="c-tabs" role="tablist">
+  <button class="c-tab" role="tab" data-view="system" aria-selected="true">System View</button>
+  <button class="c-tab" role="tab" data-view="flows" aria-selected="false">Data Flows</button>
+  <button class="c-tab" role="tab" data-view="items" aria-selected="false">Item Types</button>
+  <button class="c-tab" role="tab" data-view="deploy" aria-selected="false">Enterprise vs. Online</button>
+  <button class="c-tab" role="tab" data-view="maturity" aria-selected="false">Maturity Ladder</button>
+  <button class="c-tab" role="tab" data-view="usecases" aria-selected="false">Use Cases</button>
+  <button class="c-tab" role="tab" data-view="gaps" aria-selected="false">Key Gaps</button>
+  <button class="c-tab" role="tab" data-view="notes" aria-selected="false">Release Notes</button>
+</div>
+
+<!-- ══════════════════ SYSTEM VIEW ══════════════════ -->
+<section class="view active" id="view-system">
+  <div class="view-head">
+    <h2>Tiered system view</h2>
+    <p>Classic three-tier read of the platform, laid out left to right in the order content actually moves: captured and produced on the far left, landing in the <em>data tier</em>, published and served by the <em>services tier</em>, and reaching users in the <em>presentation tier</em>. Use the filters to reduce the diagram to a single deployment story.</p>
+  </div>
+
+  <div class="toolbar">
+    <span class="tlabel">Highlight</span>
+    <button class="btn active" data-sysfilter="all">Everything</button>
+    <button class="btn" data-sysfilter="ent">ArcGIS Enterprise</button>
+    <button class="btn" data-sysfilter="online">ArcGIS Online</button>
+    <button class="btn" data-sysfilter="desktop">Desktop &amp; Pro</button>
+    <button class="btn" data-sysfilter="mobile">Field &amp; Mobile</button>
+    <button class="btn" data-sysfilter="dev">Developer / SDK</button>
+    <button class="btn" data-sysfilter="3d">3D-specific</button>
+  </div>
+
+  <div class="legend">
+    <span><i style="background:#6A6A6A"></i> Generally available</span>
+    <span><i style="background:#35AC46"></i> New in 2026</span>
+    <span><i style="background:#EDD317"></i> Beta / early adopter</span>
+    <span><i style="background:#D83020"></i> Deprecated — do not design on</span>
+    <span><i style="background:#7A2EA6"></i> Custom / solution-specific</span>
+    <span><i style="background:#9E9E9E"></i> External to Esri</span>
+  </div>
+
+  <div class="tiers">
+    <div class="rail">
+      <h4>Capture &amp; Production</h4>
+      <div class="tsub">Where content originates</div>
+      <div class="rbody" id="rail-body"></div>
+    </div>
+    <div class="flowarrow"><span>&rarr;</span><em>ingest</em></div>
+    <div class="tier t1">
+      <h4>Tier 1 &middot; Data &amp; Storage</h4>
+      <div class="tsub">Geodatabase, data stores, cloud storage</div>
+      <div class="tbody" id="tier1"></div>
+    </div>
+    <div class="flowarrow"><span>&rarr;</span><em>publish</em></div>
+    <div class="tier t2">
+      <h4>Tier 2 &middot; Services &amp; Applications</h4>
+      <div class="tsub">ArcGIS Enterprise / ArcGIS Online</div>
+      <div class="tbody" id="tier2"></div>
+    </div>
+    <div class="flowarrow"><span>&rarr;</span><em>consume</em></div>
+    <div class="tier t3">
+      <h4>Tier 3 &middot; Presentation &amp; Apps</h4>
+      <div class="tsub">Desktop, web, field, immersive</div>
+      <div class="tbody" id="tier3"></div>
+    </div>
+  </div>
+</section>
+
+<!-- ══════════════════ DATA FLOWS ══════════════════ -->
+<section class="view" id="view-flows">
+  <div class="view-head">
+    <h2>Data-type flows</h2>
+    <p>Pick one or more input data types. The board below lights up only the products that move that data forward, stage by stage. This is the "I have 360&deg; photography — now what?" view.</p>
+    <p style="font-size:.8rem;color:var(--calcite-color-text-3)">Products appear in <strong>every stage where they do real work</strong> — ArcGIS Velocity ingests, processes, stores and serves; ArcGIS Pro produces content and is also a consumption client. A <span class="multi" style="position:static;display:inline-block">2&times;</span> badge marks a product that spans stages, and it lights up only in the stages it participates in for the selected flow.</p>
+  </div>
+
+  <div class="toolbar">
+    <span class="tlabel">Data type</span>
+    <span id="flow-buttons" style="display:contents"></span>
+    <button class="btn ghost" id="flow-clear">Show all</button>
+  </div>
+
+  <div id="flow-narratives"></div>
+
+  <div class="pipe" id="pipe-board"></div>
+</section>
+
+<!-- ══════════════════ ITEM TYPES ══════════════════ -->
+<section class="view" id="view-items">
+  <div class="view-head">
+    <h2>Item types</h2>
+    <p>The tiers and flows on the other tabs name things like <em>web scene</em>, <em>scene service</em> and <em>3D tiles layer</em> without saying what they actually are. This is that reference — what each item type is, what creates it, and where ArcGIS Enterprise and ArcGIS Online genuinely differ.</p>
+  </div>
+
+  <div class="block">
+    <header><h3>Two naming traps</h3><span class="hint">Both cause real confusion in customer conversations</span></header>
+    <div class="body" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(340px,1fr));gap:1rem">
+      <div>
+        <h4 style="font-size:.8125rem;color:var(--calcite-color-brand-press);margin-bottom:.35rem">1. Almost every 3D item has three different names</h4>
+        <p style="font-size:.78rem;color:var(--calcite-color-text-2);margin-bottom:.5rem">The REST API type, the name shown in the portal, and the name used in the documentation all differ — and Esri is mid-rename, which makes it worse. At 12.1 the docs now call the whole family <b>&ldquo;3D layers&rdquo;</b> rather than &ldquo;scene layers,&rdquo; but the item names still say <em>scene</em> and <em>3D tiles</em>. Esri's own note: <em>&ldquo;the layer item names still include the words scene and 3D tiles… to help you move from the old item names to the new consolidated name.&rdquo;</em></p>
+        <table style="font-size:.72rem"><tbody>
+          <tr><td style="font-family:var(--cal-mono)">Scene Service</td><td>&rarr;</td><td><b>Scene Layer</b></td><td>&rarr;</td><td><em>3D layer</em></td></tr>
+          <tr><td style="font-family:var(--cal-mono)">3DTilesService</td><td>&rarr;</td><td><b>3D Tiles Layer</b></td><td>&rarr;</td><td><em>3D layer</em></td></tr>
+          <tr><td style="font-family:var(--cal-mono)">Scene Package</td><td>&rarr;</td><td><b>Scene layer package</b></td><td>&rarr;</td><td><em>.slpk</em></td></tr>
+          <tr><td style="font-family:var(--cal-mono)">Image Service</td><td>&rarr;</td><td><b>Imagery Layer</b></td><td>&rarr;</td><td><em>Elevation layer</em>, when tagged</td></tr>
+        </tbody></table>
+        <p style="font-size:.72rem;color:var(--calcite-color-text-3);margin:.5rem 0 0">REST type &rarr; portal display name &rarr; documentation concept.</p>
+      </div>
+      <div>
+        <h4 style="font-size:.8125rem;color:var(--calcite-color-status-danger);margin-bottom:.35rem">2. &ldquo;Data store&rdquo; means two unrelated things</h4>
+        <p style="font-size:.78rem;color:var(--calcite-color-text-2);margin-bottom:.5rem">Same words, opposite products, no relationship.</p>
+        <p style="font-size:.78rem;color:var(--calcite-color-text-2);margin-bottom:.5rem"><b>In ArcGIS Enterprise</b> a data store item registers a folder, database or cloud storage location with a federated server so layers can <em>reference</em> data instead of copying it. This is the mechanism that makes very large 3D content practical.</p>
+        <p style="font-size:.78rem;color:var(--calcite-color-text-2);margin-bottom:.5rem"><b>In ArcGIS Online</b> a data store item is an ArcGIS Data Pipelines source connection — an ETL input. It has nothing to do with 3D caches.</p>
+        <div class="caveat" style="margin-top:0"><b>Consequence:</b> ArcGIS Online has <b>no referenced-cache mechanism for 3D at all</b>. Every 3D layer in Online is hosted, the cache is copied into Esri's storage, and it counts against credits. This is the defining Enterprise advantage for industrial-scale 3D, and the data store item is the object that enables it.</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="block">
+    <header><h3>The seven 3D layer types</h3><span class="hint">Which service backs each, and what you can do with it</span></header>
+    <div class="body" style="padding:0;overflow:auto">
+      <table id="l3d-table">
+        <thead><tr>
+          <th style="min-width:120px">3D layer type</th>
+          <th style="text-align:center">Scene service<br><span style="font-weight:400;text-transform:none">I3S</span></th>
+          <th style="text-align:center">3D tiles service<br><span style="font-weight:400;text-transform:none">OGC</span></th>
+          <th style="text-align:center">Editable</th>
+          <th style="text-align:center">From<br>.slpk</th>
+          <th style="text-align:center">From<br>.3tz</th>
+          <th style="min-width:300px">Notes</th>
+        </tr></thead>
+        <tbody></tbody>
+      </table>
+    </div>
+  </div>
+
+  <div class="toolbar">
+    <span class="tlabel">Category</span>
+    <button class="btn active" data-itemcat="all">All</button>
+    <span id="itemcat-buttons" style="display:contents"></span>
+    <span class="tlabel" style="margin-inline-start:1rem">Availability</span>
+    <button class="btn" data-itemsup="ent">Enterprise only</button>
+    <button class="btn" data-itemsup="online">Online only</button>
+    <button class="btn" data-itemsup="none">Not an item type</button>
+  </div>
+
+  <div id="itemlist"></div>
+</section>
+
+<!-- ══════════════════ DEPLOYMENT ══════════════════ -->
+<section class="view" id="view-deploy">
+  <div class="view-head">
+    <h2>ArcGIS Enterprise vs. ArcGIS Online</h2>
+    <p>Where each component actually runs. For industrial digital twin work the deciding factors are usually cache size, referenced-cache publishing, server roles, and data sovereignty — summarised below the matrix.</p>
+  </div>
+
+  <div class="block">
+    <header><h3>The four decisions that usually settle it</h3></header>
+    <div class="body" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:.9rem">
+      <div>
+        <h4 style="font-size:.8125rem;color:var(--calcite-color-brand-press);margin-bottom:.3rem">1. How big is the 3D cache?</h4>
+        <p style="font-size:.78rem;color:var(--calcite-color-text-2);margin:0">Esri guidance puts <b>i3sREST referenced content</b> as the right answer above roughly 200&nbsp;GB, and referenced-cache publishing is an <b>Enterprise-only</b> pattern. ArcGIS Online caps package upload at 500&nbsp;GB and offers no data-store referencing. A full refinery mesh plus point clouds crosses that line quickly.<sup>[1]</sup></p>
+      </div>
+      <div>
+        <h4 style="font-size:.8125rem;color:var(--calcite-color-brand-press);margin-bottom:.3rem">2. Do you need server roles?</h4>
+        <p style="font-size:.78rem;color:var(--calcite-color-text-2);margin:0">Image Server, Reality Server, Knowledge Server, Velocity Server, Notebook Server and Data Pipelines Server are Enterprise-only licensing roles. If reality mapping at scale, knowledge graphs, or raster analytics are in scope, that is an Enterprise conversation.<sup>[2]</sup></p>
+      </div>
+      <div>
+        <h4 style="font-size:.8125rem;color:var(--calcite-color-brand-press);margin-bottom:.3rem">3. Credits vs. infrastructure</h4>
+        <p style="font-size:.78rem;color:var(--calcite-color-text-2);margin:0">In ArcGIS Online, 3D layer, SLPK and 3D tiles caches are billed at <b>1.2 credits per GB per month</b>. Enterprise consumes no credits but you own the object store, the caching tier and the sizing. Model both before recommending.<sup>[3]</sup></p>
+      </div>
+      <div>
+        <h4 style="font-size:.8125rem;color:var(--calcite-color-brand-press);margin-bottom:.3rem">4. Where does the plant data live?</h4>
+        <p style="font-size:.78rem;color:var(--calcite-color-text-2);margin:0">Operational-technology adjacency, air-gapped sites and data-residency rules push toward Enterprise on-premises or in the customer's own cloud tenancy. Kubernetes is available but is <b>not at feature parity</b> — notably no Velocity, no Knowledge, no Data Interoperability.<sup>[4]</sup></p>
+      </div>
+    </div>
+  </div>
+
+  <div class="block">
+    <header><h3>AWS and Azure</h3><span class="hint">Switch the cloud toggle in the header to change every cloud reference on the page</span></header>
+    <div class="body">
+      <p id="cloud-intro" style="font-size:.8125rem;color:var(--calcite-color-text-2)"></p>
+    </div>
+    <div class="body" style="padding:0;overflow:auto">
+      <table id="cloud-table">
+        <thead><tr>
+          <th style="min-width:170px"></th>
+          <th style="min-width:340px">Amazon Web Services</th>
+          <th style="min-width:340px">Microsoft Azure</th>
+        </tr></thead>
+        <tbody></tbody>
+      </table>
+    </div>
+  </div>
+
+  <div class="toolbar">
+    <span class="tlabel">Filter</span>
+    <button class="btn active" data-depfilter="all">All components</button>
+    <button class="btn" data-depfilter="ent">Enterprise-only</button>
+    <button class="btn" data-depfilter="both">Both</button>
+    <button class="btn" data-depfilter="3d">3D-specific</button>
+  </div>
+
+  <div class="block">
+    <div class="body" style="padding:0;overflow:auto">
+      <table id="deploy-table">
+        <thead><tr>
+          <th style="min-width:230px">Component</th>
+          <th style="text-align:center">Pro / Desktop</th>
+          <th style="text-align:center">Enterprise<br><span style="font-weight:400;text-transform:none">Win / Linux</span></th>
+          <th style="text-align:center">Enterprise<br><span style="font-weight:400;text-transform:none">Kubernetes</span></th>
+          <th style="text-align:center">ArcGIS Online</th>
+          <th style="text-align:center">SaaS / Mobile</th>
+          <th style="min-width:250px">Notes</th>
+        </tr></thead>
+        <tbody></tbody>
+      </table>
+    </div>
+  </div>
+</section>
+
+<!-- ══════════════════ MATURITY ══════════════════ -->
+<section class="view" id="view-maturity">
+  <div class="view-head">
+    <h2>Digital twin maturity ladder</h2>
+    <p>Read bottom to top. Most industrial customers sit at level 1–2 and believe they are buying level 5 — the value of this view is establishing which rung they are actually on, and what the next one costs.</p>
+  </div>
+  <div class="ladder" id="ladder"></div>
+</section>
+
+<!-- ══════════════════ USE CASES ══════════════════ -->
+<section class="view" id="view-usecases">
+  <div class="view-head">
+    <h2>Use cases &rarr; capability mapping</h2>
+    <p>The seven workflows raised in the BP refinery enquiry, plus the spatial asset tagging pattern from the ExxonMobil GSDB review. Each card names the capability required, the ArcGIS components that deliver it, and — honestly — where the story is currently thin.</p>
+  </div>
+  <div class="ucgrid" id="ucgrid"></div>
+</section>
+
+<!-- ══════════════════ KEY GAPS ══════════════════ -->
+<section class="view" id="view-gaps">
+  <div class="view-head">
+    <h2>Key gaps</h2>
+    <p>Working list for internal exploration — where the ArcGIS story for industrial 3D and digital twin is currently thin, incomplete, or hard to explain. Each entry separates <strong>what is missing</strong> from <strong>what we do today instead</strong> and <strong>what would actually close it</strong>, so the list can feed roadmap and product conversations rather than just cataloguing complaints.</p>
+    <p style="font-size:.8rem;color:var(--calcite-color-text-3)">Not customer-facing as written. Several entries are drawn from the ExxonMobil GSDB solution alignment review; others surfaced while assembling this page.</p>
+  </div>
+
+  <div class="toolbar">
+    <span class="tlabel">Severity</span>
+    <button class="btn active" data-gapfilter="all">All</button>
+    <button class="btn" data-gapfilter="high">Blocks a stated use case</button>
+    <button class="btn" data-gapfilter="med">Forces custom work</button>
+    <button class="btn" data-gapfilter="watch">Watch / messaging</button>
+    <span class="tlabel" style="margin-inline-start:1rem">Area</span>
+    <button class="btn" data-gaparea="field">Field &amp; mobile</button>
+    <button class="btn" data-gaparea="data">Data &amp; formats</button>
+    <button class="btn" data-gaparea="api">APIs &amp; integration</button>
+    <button class="btn" data-gaparea="serve">Serving &amp; 3D layers</button>
+    <button class="btn" data-gaparea="story">Positioning</button>
+  </div>
+
+  <div id="gaplist"></div>
+</section>
+
+<!-- ══════════════════ NOTES ══════════════════ -->
+<section class="view" id="view-notes">
+  <div class="view-head">
+    <h2>Notes, release caveats &amp; known gaps</h2>
+    <p>Everything on this page is stated against <strong>ArcGIS Enterprise 12.1</strong> (May 2026), <strong>ArcGIS Enterprise 12.1 on Kubernetes</strong> (June 2026), <strong>ArcGIS Pro 3.7</strong> and the August 2026 state of ArcGIS Online. Where a claim is version-sensitive or unverified, it is called out here rather than smoothed over.</p>
+  </div>
+
+  <div class="notes">
+    <div class="block">
+      <header><h3>Release-specific caveats</h3></header>
+      <div class="body">
+        <ol>
+          <li id="n1"><b>Referenced-cache publishing and size limits.</b> Publish-by-reference (<code>.eslpk</code>, i3sREST content in a registered cloud store, or a 3D tiles dataset) requires ArcGIS Enterprise and a registered folder or cloud storage data store. Esri guidance recommends i3sREST for scene layer content above roughly 200&nbsp;GB. Copy-data publishing needs 2&times; the package size free in <em>both</em> the portal content store and the hosting server cache directory. ArcGIS Online caps package upload at 500&nbsp;GB and has no equivalent referencing path.</li>
+          <li id="n2"><b>Tile cache data store is removed at 12.0.</b> The object store replaced it and is now a <em>required</em> base-deployment component. Any existing 3D deployment on 11.x must migrate hosted scene caches to the object store <em>before</em> upgrading to 12.x. This is a hard upgrade blocker and worth raising early with any customer already running 3D.</li>
+          <li id="n3"><b>ArcGIS Online credit model for 3D.</b> Caches for 3D layers, SLPKs and 3D tiles packages bill at 1.2 credits/GB/month, calculated hourly. Layer generation from features bills separately (1 credit per 1,000 textured multipatch features). Exhausting credits puts the organisation into a restricted state in which members cannot publish layers of any type.</li>
+          <li id="n4"><b>Kubernetes is not at parity.</b> At 12.1 on Kubernetes there is no GeoEvent Server, no Velocity Server, no Knowledge Server, no Data Pipelines Server, and no Data Interoperability. All seven 3D layer types are supported and caches live in the object store (S3/Blob/GCS), but there is no long-term-support release on Kubernetes. Consult the ArcGIS Enterprise Functionality Matrix as the authoritative tiebreaker on any specific capability.</li>
+          <li id="n5"><b>ArcGIS Reality Server is beta.</b> Introduced as a server role at Enterprise 12.0 and still labelled beta at 12.1, distributed via the Early Adopter Community and not covered by Esri Technical Support. It is the right architectural answer for server-side reality mapping at plant scale, but it should be positioned as roadmap, not as something to build a contract around today.</li>
+          <li id="n6"><b>Oriented Imagery Classic is being removed.</b> The Oriented Imagery Catalog (OIC) data model, the Classic Pro add-in, the Classic Experience Builder widget and the Classic API are all deprecated. The Classic widget was removed from ArcGIS Online in February 2026 and will be removed from ArcGIS Enterprise at 12.1+. Maps SDK for JavaScript 5.0 no longer visualises OICs. New work must use the current <em>oriented imagery dataset</em> / <em>oriented imagery layer</em> model.</li>
+          <li id="n7"><b>ArcGIS GeoEvent Server is deprecated.</b> Announced April 2026: final release at Enterprise 12.3, removed at 12.4. ArcGIS Velocity is the designated successor and is now available for Enterprise (Windows/Linux) at 12.1 as ArcGIS Velocity Server — though the Enterprise flavour does <em>not</em> include big data analytics, which remains ArcGIS Online only. Note that Esri is explicit that Velocity Server is <em>not</em> an ArcGIS Server licensing role: it is a standalone federated server component and does not require ArcGIS Server on its machine. Do not design new real-time work on GeoEvent.</li>
+          <li id="n8"><b>ArcGIS GeoAnalytics Server was retired at 11.4.</b> Big data file shares can no longer be registered. Migration paths are the GeoAnalytics desktop toolbox, GeoAnalytics Engine, standard analysis tools, or the ArcGIS API for Python.</li>
+          <li id="n9"><b>CityEngine and Urban licensing consolidated.</b> Perpetual and standalone-subscription CityEngine licences and the ArcGIS Urban Suite are no longer sold; delivery is now via Professional / Professional Plus user types. Both remain urban-planning tools and are not positioned by Esri for industrial plant work — reference them with care in a refinery conversation.</li>
+          <li id="n10"><b>XR Viewer is beta.</b> The no-code VR viewer for existing web scenes (Meta Quest 3/3S) is Early Adopter Program only, with no announced GA date. For a committed immersive-training deliverable today, the supported path is the ArcGIS Maps SDKs for Unity or Unreal Engine — which is a build effort, not configuration.</li>
+        </ol>
+      </div>
+    </div>
+
+    <div class="block">
+      <header><h3>Known gaps</h3></header>
+      <div class="body">
+        <p style="font-size:.8125rem;color:var(--calcite-color-text-2);margin:0">Capability and positioning gaps have moved to their own tab &mdash; see <a href="#" data-goto="gaps">Key Gaps</a>, where each entry separates what is missing from what we do today and what would close it.</p>
+      </div>
+    </div>
+
+    <div class="block">
+      <header><h3>Industrial proof points</h3></header>
+      <div class="body">
+        <p style="font-size:.8125rem;color:var(--calcite-color-text-2)"><b>OMV Downstream GmbH</b> — the reference the customer asked about by name. Esri's downstream industry page features OMV's turnaround planning work, and there is a conference video, <em>"OMV Downstream GmbH: Building a 3D Refinery Model,"</em> covering the move from 2D to 3D, facility models, visualising work status during turnaround, and connecting to other key systems — explicitly framed against long-term digital twin aspirations. Caveat: the current OMV material is conference video and an industry-page feature, <b>not a formal written case study</b>, and appears to date from around 2021. Verify currency before quoting it.</p>
+        <p style="font-size:.8125rem;color:var(--calcite-color-text-2)">Other downstream references on Esri's petroleum pages include <b>ExxonMobil</b> (integrated decommissioning workflow; real-estate optimisation), <b>BP</b> (refinery emergency response planning), and <b>Shell Retail</b>. Broader digital twin flagships — Vodafone, Cisco, Cross River Rail (which included a VR design tour), Raleigh Water — are credible but <b>none is a refinery or petrochemical plant</b>. Be candid that the heavy-industry 3D twin reference set is thinner than the utility and urban set.</p>
+      </div>
+    </div>
+
+    <div class="block">
+      <header><h3>About this page</h3></header>
+      <div class="body">
+        <p style="font-size:.8125rem;color:var(--calcite-color-text-2)">Styled with <a href="https://developers.arcgis.com/calcite-design-system/" target="_blank" rel="noopener">Calcite Design System</a> tokens and typography. Self-contained single HTML file — no build step, no external dependencies, opens from a file share or drops into any web server. Product data lives in a single JavaScript object near the bottom of the source, so tiles, flows and use cases can be edited without touching layout.</p>
+        <p style="font-size:.8125rem;color:var(--calcite-color-text-2)"><b>Finding the source documentation.</b> Esri moved the ArcGIS Enterprise documentation from <code>enterprise.arcgis.com</code> to <code>doc.esri.com/en/arcgis-enterprise/latest/</code>, and merged the separate AWS and Azure books into one <em>ArcGIS Enterprise cloud tools</em> book at <code>doc.esri.com/en/arcgis-enterprise-cloud-tools/latest/</code> with <code>amazon/</code> and <code>azure/</code> sections. Older links mostly still redirect, but search results frequently return the previous structure. Every claim on this page was verified against the current locations in August 2026.</p>
+        <p style="font-size:.8125rem;color:var(--calcite-color-text-2);margin-bottom:0">Palantir Foundry and other enterprise platforms are deliberately out of scope here. The integration surface — ArcGIS REST and OGC APIs, custom data feeds, webhooks, service interceptors, ArcGIS Data Interoperability, ArcGIS Data Pipelines, the Python API — is shown in the services tier so the conversation can be had, but no external platform architecture is asserted.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<footer class="pagefoot">
+  Internal reference material &middot; Esri &middot; Compiled August 2026 against ArcGIS Enterprise 12.1 / ArcGIS Pro 3.7.
+  Verify product status and licensing with the relevant product teams before external use.
+</footer>
+</div>
+
+<!-- Detail flyout -->
+<aside class="flyout" id="flyout" aria-hidden="true">
+  <header>
+    <h3 id="fly-title">—</h3>
+    <button class="close" id="fly-close" aria-label="Close">&times;</button>
+  </header>
+  <div class="fbody" id="fly-body"></div>
+</aside>
+
+<script>
+/* ═══════════════════════════════════════════════════════════════════════
+   CLOUD TOKENS
+   One page, three audiences. Every cloud-specific term is written once here
+   and referenced as {{token}} in the content below, so the AWS and Azure
+   readings cannot drift apart the way two separate files would.
+   ═══════════════════════════════════════════════════════════════════════ */
+const CLOUD={
+neutral:{label:"Cloud-neutral",
+  blob:"cloud object storage",
+  blobfull:"cloud object storage (Amazon S3 or Azure Blob Storage)",
+  k8s:"a managed Kubernetes service",
+  k8sfull:"Amazon EKS, Azure AKS or Google GKE",
+  db:"a managed PostgreSQL service",
+  gpu:"GPU-enabled instances",
+  gpupro:"a GPU-enabled virtual desktop",
+  iac:"Esri's cloud deployment tooling",
+  identity:"cloud-native identity",
+  vm:"cloud virtual machines",
+  region:"your cloud region"},
+aws:{label:"Amazon Web Services",
+  blob:"Amazon S3",
+  blobfull:"Amazon S3",
+  k8s:"Amazon EKS",
+  k8sfull:"Amazon EKS",
+  db:"Amazon RDS for PostgreSQL or Amazon Aurora PostgreSQL",
+  gpu:"EC2 G5 or G4dn instances",
+  gpupro:"EC2 G5, Amazon WorkSpaces Graphics.g4dn or AppStream 2.0",
+  iac:"ArcGIS Enterprise Cloud Builder for AWS or Esri's CloudFormation templates",
+  identity:"an IAM role",
+  vm:"Amazon EC2 instances",
+  region:"your AWS region"},
+azure:{label:"Microsoft Azure",
+  blob:"Azure Blob Storage",
+  blobfull:"Azure Blob Storage",
+  k8s:"Azure AKS",
+  k8sfull:"Azure Kubernetes Service (AKS)",
+  db:"Azure Database for PostgreSQL Flexible Server",
+  gpu:"NVadsA10 v5 or NCasT4_v3 virtual machines",
+  gpupro:"Azure Virtual Desktop, Windows 365 GPU Cloud PC or NVadsA10 v5",
+  iac:"ArcGIS Enterprise Cloud Builder for Azure or Esri's ARM templates",
+  identity:"a user-assigned managed identity",
+  vm:"Azure virtual machines",
+  region:"your Azure region"}
+};
+let CLOUDKEY="neutral";
+/* Replace {{token}} and wrap the result so swapped terms are visually traceable. */
+function tok(s){
+  if(typeof s!=="string") return s;
+  const c=CLOUD[CLOUDKEY];
+  return s.replace(/\{\{(\w+)\}\}/g,(m,k)=>
+    c[k]===undefined?m:(CLOUDKEY==="neutral"?c[k]:`<span class="tok">${c[k]}</span>`));
+}
+
+/* Cloud comparison rows for the deployment tab. */
+const CLOUDROWS=[
+["Deployment tooling",
+ "ArcGIS Enterprise Cloud Builder for AWS (GUI <em>and</em> CLI), plus Esri's versioned CloudFormation templates. The CLI takes two JSON config files and drives the same templates as the GUI.",
+ "ArcGIS Enterprise Cloud Builder for Microsoft Azure (GUI only) plus Esri's ARM templates. No CLI — instead Cloud Builder exports a &ldquo;save automation artifacts&rdquo; zip for repeatable deployments."],
+["Infrastructure as code",
+ "Esri's <code>Esri/arcgis-gitops</code> repo — Terraform + Packer + Ansible + GitHub Actions, with an explicit primary/standby DR pattern. Same repo serves both clouds.",
+ "Same <code>Esri/arcgis-gitops</code> repo. The Azure side provisions AKS with the Application Gateway for Containers, a private-endpoint container registry, and Azure Monitor + Managed Grafana."],
+["Marketplace images",
+ "<b>Esri deprecated pre-built AMIs after 10.9.1.</b> You build your own AMI from Esri's CloudFormation AMI templates. Note Esri's AWS alliance page still advertises marketplace AMIs — check the live listing before promising one.",
+ "<b>Current Esri VM images are published in Azure Marketplace</b> — an ArcGIS Enterprise image with Portal, Server and Data Store preinstalled, and an ArcGIS Pro image. The clearer of the two stories."],
+["Object store for 3D caches",
+ "A folder in an <b>Amazon S3</b> bucket, which must be empty and in the same region as the deployment. Authenticate with an access key or a predefined IAM role. <b>S3 directory buckets are not supported</b> for the object store.",
+ "An empty folder or container root in <b>Azure Blob Storage</b>. Authenticate with an access key or a user-assigned managed identity holding the Storage Blob Data Owner role. Cloud Builder also lets you choose account kind and LRS/GRS/RA-GRS redundancy."],
+["Cloud store authentication",
+ "Access key and secret, or IAM role. ArcGIS Pro connection files additionally support IMDSv1 and IMDSv2, AWS IAM Identity Center SSO, session tokens and <code>AWS_PROFILE</code>. <b>S3 Express One Zone directory buckets <em>are</em> supported for .acs connections</b> — the opposite of the object store rule.",
+ "Richer than the Azure object store allows: access key, user-assigned managed identity, <b>SAS token</b> and <b>service principal</b>. ArcGIS Pro adds OAuth 2.0 interactive sign-in with Entra ID. <b>ADLS Gen2 is an Azure-only option</b> with true directory semantics and atomic operations — meaningfully better for deep tiled cache trees."],
+["Kubernetes",
+ "Amazon EKS, Kubernetes 1.33&ndash;1.35. Requires the <b>AWS Load Balancer Controller</b> add-on and the EBS CSI driver; Esri recommends a gp3 storage class and a minimum /18 subnet. Autoscaling via Karpenter with EKS Auto Mode. <b>AWS Fargate is not supported.</b>",
+ "Azure AKS, same Kubernetes 1.33&ndash;1.35 range. Storage classes reference <code>default</code> or <code>managed-premium</code> over Azure Disks; Azure Load Balancer for L4 and Application Gateway for L7. Autoscaling via Karpenter with AKS Node Auto-Provisioning. No mandatory controller add-on."],
+["Enterprise geodatabase",
+ "Amazon RDS for PostgreSQL, Amazon Aurora PostgreSQL, RDS for SQL Server (2019/2022) and <b>RDS for Oracle</b>. Esri ships CloudFormation templates that create the geodatabase instance for you.",
+ "Azure Database for PostgreSQL Flexible Server, Azure SQL Database and SQL Managed Instance. <b>No managed Oracle option.</b> Entra ID authentication to Azure SQL is an Azure advantage. Note: <b>geodatabases are not supported in PostgreSQL elastic clusters.</b>"],
+["GPU for ArcGIS Pro",
+ "EC2 G4dn and G5 for dedicated VMs; Amazon WorkSpaces Graphics.g4dn for managed desktops; AppStream 2.0 for pooled delivery at roughly 1&ndash;2 heavy 3D users per GPU.",
+ "NVadsA10 v5 and NCasT4_v3; Windows 365 GPU Cloud PC (the Max tier is sized for dense 3D scenes, lidar classification and deep learning); Azure Virtual Desktop; plus the ArcGIS Pro Mission Landing-Zone accelerator and Azure Local for edge or sovereign sites."],
+["Sovereign &amp; government",
+ "<b>AWS GovCloud (US) is supported</b> and documented in Esri's AWS cloud tooling, and has been since 10.8.1.",
+ "<b>Azure Government is supported</b> — ArcGIS images are available there and Cloud Builder has a US Government Cloud option. Azure additionally documents <b>Azure Local (Stack HCI)</b> for edge and sovereign on-premises deployments, which has no AWS equivalent in Esri's docs."],
+["Notable differentiator",
+ "<b>Spatial Data Management on AWS (SDMA)</b> — an AWS Solutions Library solution built specifically around 3D and physical asset data, with an official Esri ArcGIS Pro connector. There is no Azure equivalent. The Esri&ndash;AWS collaboration agreement is currently oriented toward geospatial AI foundation models and agentic architectures.",
+ "<b>ArcGIS for Microsoft Fabric</b> and deep Microsoft 365, Power BI and Power Platform integration. The Esri&ndash;Microsoft alliance is currently oriented toward business intelligence and productivity rather than 3D data management."]
+];
+
+/* ═══════════════════════════════════════════════════════════════════════
+   PRODUCT CATALOG
+   tier:    capture | produce | manage | serve | consume
+   deploy:  desktop, ent, k8s, online, saas, mobile, dev, ext
+   status:  ga | new | beta | dep | custom | ext
+   ═══════════════════════════════════════════════════════════════════════ */
+const CATALOG = {
+/* ── CAPTURE ─────────────────────────────────────────────────────── */
+scanners:{n:"Terrestrial scanners &amp; 360° cameras",tier:"capture",g:"Hardware",deploy:["ext"],status:"ext",is3d:true,
+  d:"Leica, FARO, NavVis, Trimble, Matterport; Insta360 and GoPro for 360° panoramas. Not Esri products — these are the boundary of the system.",
+  k:["Outputs E57 / RCP / PTX / LAS / LAZ","Equirectangular JPEG for 360°","Format conversion may be required — see gap note"]},
+flight:{n:"ArcGIS Flight",tier:"capture",g:"Drone",deploy:["mobile","saas"],status:"ga",
+  d:"iPad flight-planning app for drone missions, formerly Site Scan Flight. Plans and executes the capture that feeds Site Scan or Drone2Map.",
+  k:["Automated flight planning","Feeds Site Scan for ArcGIS"]},
+sitescan:{n:"Site Scan for ArcGIS",tier:"capture",g:"Drone",deploy:["saas"],status:"ga",is3d:true,
+  d:"Cloud SaaS for drone fleet management and cloud processing. Publishes directly to ArcGIS Online / Enterprise. Q2 2026 added cloud Gaussian splats (no local GPU) and publishing 360° panoramas as oriented imagery layers.",
+  k:["Cloud processing — no workstation needed","Volumetrics, cut/fill, temporal change","Outputs LAZ point cloud, SLPK and OBJ mesh","Autodesk BIM 360 integration"]},
+quickcapture:{n:"ArcGIS QuickCapture",tier:"capture",g:"Field",deploy:["mobile"],status:"ga",
+  d:"Button-centric rapid field capture. Can be configured to capture oriented imagery — the mobile app writes camera heading, pitch and roll from device sensors.",
+  k:["Oriented imagery capture from a phone","Capture at speed / hands-busy situations","Buttons can launch Field Maps or Survey123"]},
+fieldmaps:{n:"ArcGIS Field Maps",tier:"capture",g:"Field",deploy:["mobile"],status:"ga",
+  d:"The flagship map-centric field app: view, collect and edit spatial and form data, offline maps, asset location, location tracking. Supports floor-aware maps for indoor work.",
+  k:["2D only — no web scene support","Floor-aware for indoor navigation","Offline-capable for plant areas without coverage","See gap note on 3D field access"]},
+survey123:{n:"ArcGIS Survey123",tier:"capture",g:"Field",deploy:["mobile"],status:"ga",
+  d:"Form-centric capture with conditional logic. The right tool for inspection findings, permits, HSE checks and structured condition reporting.",
+  k:["Smart forms with complex logic","Works disconnected","Photo and attachment capture against assets"]},
+indoorsmobile:{n:"ArcGIS Indoors Mobile",tier:"capture",g:"Field",deploy:["mobile"],status:"new",
+  d:"Indoor wayfinding and capture. 2026 releases added 360° capture support (Insta360 X5, GoPro Max2) feeding floor-aware oriented imagery.",
+  k:["Indoor 360° reality capture","Blue-dot positioning","Floor-aware"]},
+iot:{n:"Plant sensors, historians &amp; OT",tier:"capture",g:"Operational",deploy:["ext"],status:"ext",
+  d:"Process historians, condition monitoring, IoT platforms and control systems. External to Esri — integrated through Velocity feeds, Kafka, MQTT or custom data feeds.",
+  k:["21+ native Velocity feed types","Kafka, RabbitMQ, MQTT, HTTP","Custom data feeds for anything else"]},
+cadbim:{n:"CAD / BIM authoring",tier:"capture",g:"Operational",deploy:["ext"],status:"ext",
+  d:"Autodesk Revit, AutoCAD, Civil 3D, IFC, plant design systems. Secondary source for selected assets where reality capture is insufficient.",
+  k:["Reached via ArcGIS GeoBIM without moving data","Revit, IFC, AutoCAD, Civil 3D","Files stay in Autodesk Forma"]},
+
+/* ── PRODUCE ─────────────────────────────────────────────────────── */
+realitystudio:{n:"ArcGIS Reality Studio",tier:"produce",g:"Reality mapping",deploy:["desktop"],status:"ga",is3d:true,
+  d:"Standalone Windows desktop application for site-to-country-scale photogrammetric production. Separately licensed — not included in the Reality Mapping user extension.",
+  k:["Capture Session → Alignment → Reconstruction","Outputs DSM, true ortho, DSM mesh, point cloud, 3D mesh, Gaussian splats","Ultra / High / Rapid quality modes","Cloud-based processing added May 2026"]},
+realitypro:{n:"ArcGIS Reality for ArcGIS Pro",tier:"produce",g:"Reality mapping",deploy:["desktop"],status:"ga",is3d:true,
+  d:"ArcGIS Pro extension for reality mapping from drone, aerial, satellite and scanned imagery. Requires Pro Standard or Advanced plus the Reality Mapping user extension and a Professional or Professional Plus user type.",
+  k:["Ortho mapping and reality mapping workspaces","3D mesh wizard writes SLPK, 3D Tiles and OBJ","Gaussian splats need 64 GB RAM and an 8 GB+ NVIDIA GPU","Recommended 80% forward / 80% lateral overlap"]},
+drone2map:{n:"ArcGIS Drone2Map",tier:"produce",g:"Reality mapping",deploy:["desktop"],status:"ga",is3d:true,
+  d:"Standalone Windows desktop app for drone imagery processing. Works fully offline — relevant for secure or disconnected plant environments. Available with Creator user type and above.",
+  k:["Offline / disconnected capable","Outputs true ortho, DSM, DTM, point cloud, DSM mesh, 3D mesh, Gaussian splats","Publishes oriented imagery layers (2026.1)","Thermal imagery support (DJI H30, XT S)"]},
+realityserver:{n:"ArcGIS Reality Server",tier:"produce",g:"Reality mapping",deploy:["ent"],status:"beta",is3d:true,note:5,
+  d:"Server role of ArcGIS Server, introduced at Enterprise 12.0. Distributed, multi-machine reality mapping driven from ArcGIS Pro or the REST API. Esri explicitly frames it as feeding digital twin initiatives.",
+  k:["Still beta at 12.1 — Early Adopter Community","Not covered by Esri Technical Support","Removes the workstation bottleneck for plant-scale production","Needs a dedicated image hosting site plus raster stores"]},
+pro:{n:"ArcGIS Pro",tier:"produce",g:"Desktop authoring",deploy:["desktop"],status:"ga",is3d:true,
+  d:"The authoring and analysis centre of gravity: create and edit 3D features, build LAS datasets, generate scene layer content, author and publish web scenes, and run the geoprocessing that turns raw capture into managed content.",
+  k:["Reads .las, .zlas, .laz (LAS 1.0–1.4)","Create Point Cloud / Integrated Mesh / 3D Object Scene Layer Content","Authors and publishes web scenes","STAC connections for imagery discovery","Local and global scenes"]},
+pro3d:{n:"ArcGIS 3D Analyst",tier:"produce",g:"Desktop authoring",deploy:["desktop"],status:"ga",is3d:true,
+  d:"Pro extension required for all point cloud classification and most 3D analysis. This is the extension that does the LiDAR work.",
+  k:["Classify LAS Ground / Building / Noise / By Height","Line of sight, viewshed, intervisibility","Mesh To LAS, Extract Multipatch From Mesh","Required for indoor routable networks"]},
+prodl:{n:"Deep learning in ArcGIS Pro",tier:"produce",g:"AI &amp; automation",deploy:["desktop"],status:"ga",is3d:true,
+  d:"Point cloud classification and object detection using trained models. Requires Deep Learning Essentials. Point Transformer V3 is the default architecture at Pro 3.7.",
+  k:["Train Point Cloud Classification Model","Classify Point Cloud Using Trained Model","Point cloud object detection toolset","PointCNN, RandLA-Net, SQN, Point Transformer V3","Models as .dlpk / .emd"]},
+dlstudio:{n:"Deep Learning Studio",tier:"produce",g:"AI &amp; automation",deploy:["ent"],status:"ga",
+  d:"Web app in ArcGIS Enterprise for the end-to-end deep learning workflow — collect training samples, train models, run inference — without leaving the browser. Requires ArcGIS Image Server configured for raster analytics.",
+  k:["Enterprise only — not available in ArcGIS Online","Requires Image Server + raster data store","Object detection, pixel classification, object classification","Team-based sample collection and model sharing"]},
+orientedtools:{n:"Oriented Imagery Tools",tier:"produce",g:"Imagery &amp; 360",deploy:["desktop"],status:"ga",is3d:true,note:6,
+  d:"ArcGIS Pro toolbox (no extension required, Standard or Advanced) that builds oriented imagery datasets — the current model for 360°, oblique, street-side and inspection imagery.",
+  k:["Create Oriented Imagery Dataset","Add Images To Oriented Imagery Dataset — reads EXIF and XMP","Generate Service From Oriented Imagery Dataset","OrientedImageryType includes 360, Inspection, Terrestrial360Video","Only X, Y and ImagePath are strictly required"]},
+indoorspro:{n:"ArcGIS Indoors for ArcGIS Pro",tier:"produce",g:"Imagery &amp; 360",deploy:["desktop"],status:"ga",is3d:true,
+  d:"Indoor data preparation against the ArcGIS Indoors Information Model. Includes the tooling that turns indoor 360° capture into floor-aware oriented imagery.",
+  k:["360 Video To Oriented Imagery — equirectangular MP4 via VSLAM","Import Indoor Images — extracts panoramas from E57","Create Indoor 3D Dataset","Indoor network generation for routing"]},
+datainterop:{n:"ArcGIS Data Interoperability",tier:"produce",g:"Integration",deploy:["desktop","ent"],status:"ga",
+  d:"Safe Software FME embedded in ArcGIS, as a Pro extension and an Enterprise server extension. Enterprise 12.1 ships FME 2026.1. The practical answer for scanner formats ArcGIS does not read natively.",
+  k:["E57, RCP, PTX, PLY → LAS / LAZ conversion","Hundreds of format readers and writers","Separately licensed","Not supported on Kubernetes"]},
+datapipelines:{n:"ArcGIS Data Pipelines",tier:"produce",g:"Integration",deploy:["ent","online"],status:"new",
+  d:"No-code visual data engineering to hosted feature layers. Beta in Enterprise 12.0, generally available at 12.1 and included with ArcGIS Enterprise Advanced.",
+  k:["No credits in Enterprise; ~50–70 credits/hr in Online","Cannot connect to enterprise geodatabases yet","Outputs to feature layers only","Not supported on Kubernetes"]},
+notebooks:{n:"ArcGIS Notebooks",tier:"produce",g:"AI &amp; automation",deploy:["ent","online","desktop"],status:"ga",
+  d:"Hosted Python for automation, scheduled processing, bulk publishing and integration glue. Notebook Server is the Enterprise role.",
+  k:["ArcGIS API for Python","Scheduled and event-driven execution","arcgis.raster.realitymapping for Reality Server"]},
+cityengine:{n:"ArcGIS CityEngine",tier:"produce",g:"Desktop authoring",deploy:["desktop"],status:"ga",note:9,
+  d:"Procedural 3D modelling. Positioned for urban planning and design rather than industrial plant, and licensing consolidated into Professional / Professional Plus user types in 2026.",
+  k:["Procedural rule-based generation (CGA)","Urban planning oriented — reference with care in plant contexts","Perpetual licences no longer sold"]},
+
+/* ── MANAGE / STORE ──────────────────────────────────────────────── */
+egdb:{n:"Enterprise geodatabase",tier:"manage",g:"System of record",deploy:["ent"],status:"ga",is3d:true,
+  d:"The system of record for structured asset content. In the spatial asset tagging pattern this is a focused schema — point, line, polygon and multipatch feature classes carrying asset tags in real-world coordinates, rather than referential local coordinates.",
+  k:["Point, line, polygon and multipatch (volume) tags","Versioning, archiving, branch versioning","Cloud-agnostic — runs on {{db}}, or on-premises","Brings geographic precision to the asset tag itself","<b>Connections must originate in the same cloud</b>; cross-cloud and on-prem-to-cloud connections may time out","Not supported in any cloud data warehouse"]},
+objectstore:{n:"Object store",tier:"manage",g:"ArcGIS Data Store",deploy:["ent","k8s"],status:"ga",is3d:true,note:2,
+  d:"Where hosted 3D layer and scene caches live from 11.4 onward. A required base-deployment component at 12.x — the tile cache data store it replaced was removed at 12.0. In the cloud it can be backed by {{blob}} instead of ArcGIS Data Store.",
+  k:["Required in the base deployment at 12.x","Backed by ArcGIS Data Store or {{blob}}","<b>Only one object store per deployment</b>","Required to publish hosted scene layers and 3D tiles layers","Migration from tile cache data store is a hard upgrade blocker","Esri publishes no storage-tier guidance — hot vs cool is your call"]},
+relstore:{n:"Relational data store",tier:"manage",g:"ArcGIS Data Store",deploy:["ent","k8s"],status:"ga",
+  d:"Backs hosted feature layers — asset tags, inspection records, work orders and anything else published as editable features.",
+  k:["Hosted feature layer storage","Part of the base deployment","Handles under ~200 events/sec for real-time"]},
+graphstore:{n:"Graph store",tier:"manage",g:"ArcGIS Data Store",deploy:["ent"],status:"ga",
+  d:"Backs ArcGIS Knowledge graphs. Required in all cases, even when Neo4j or ArangoDB is used as an additional NoSQL backend. Must run on its own machine.",
+  k:["Required for any knowledge graph","Optional Neo4j Enterprise / ArangoDB Enterprise backends","Not available on Kubernetes"]},
+stbds:{n:"Spatiotemporal big data store",tier:"manage",g:"ArcGIS Data Store",deploy:["ent"],status:"ga",
+  d:"High-velocity archive for sensor and observation data where the relational store cannot keep up.",
+  k:["For sustained high-frequency ingest","Pairs with Velocity or GeoEvent","Time-series analysis over archived observations"]},
+rasterstore:{n:"Raster store",tier:"manage",g:"Storage",deploy:["ent"],status:"ga",
+  d:"Storage for imagery, elevation, DSM/DTM and raster analytics output. Can be a folder, a network share, or a cloud store backed by {{blob}}.",
+  k:["Required for Image Server raster analytics","Required for Reality Server","Cloud or on-premises","<b>Deep Learning Studio requires a <em>file share</em> raster store</b>, not a cloud one","On Kubernetes a relational raster store is also needed for mosaic datasets"]},
+cloudstore:{n:"Cloud object storage",tier:"manage",g:"Storage",deploy:["ent"],status:"ga",is3d:true,note:1,
+  d:"{{blobfull}} registered as a cloud store data store item. This is where i3sREST referenced 3D content lives — the pattern for very large plant meshes and point clouds.",
+  k:["i3sREST content for scene layers above ~200 GB","Cache survives layer deletion; no upload step","Enterprise-only pattern — no ArcGIS Online equivalent","Also holds .eslpk and 3D tiles datasets","Authenticate with {{identity}}","Registered via Portal &rarr; New item &rarr; Data store &rarr; Cloud Storage"]},
+sdma:{n:"Spatial Data Management on AWS",tier:"manage",g:"Storage",deploy:["ent","ext"],status:"ext",cloud:"aws",
+  d:"An AWS Solutions Library solution — not an Esri product — built specifically around multimodal spatial data representing physical assets: 3D, geospatial, behavioural and temporal. Relevant here because it is the closest thing either cloud offers to a purpose-built 3D asset data platform, and because Esri ships an official connector for it.",
+  k:["<b>Official Esri ArcGIS Pro add-in</b> — browse and reference SDMA projects, assets and files from inside Pro","Metadata on DynamoDB and OpenSearch Serverless; events via EventBridge and SQS","Bridges to ArcGIS Online and Enterprise for hybrid GIS","Custom transformation connectors submit jobs to AWS Deadline Cloud","AWS-only — no Azure equivalent exists","An AWS solution, so support and lifecycle sit with AWS, not Esri"]},
+portal:{n:"Portal for ArcGIS",tier:"manage",g:"System of record",deploy:["ent","k8s"],status:"ga",
+  d:"The catalog and access-control layer: items, metadata, groups, sharing, and the identity integration point for the whole system.",
+  k:["Item catalog and metadata","Groups, sharing and named-user access control","SAML / OpenID Connect enterprise logins","The place a 3D layer becomes discoverable"]},
+knowledge:{n:"ArcGIS Knowledge",tier:"manage",g:"System of record",deploy:["ent"],status:"ga",
+  d:"Knowledge graph capability for the primarily non-spatial content around an asset — organisational structures, contracts, material lifespan, payments and documents — linked to features.",
+  k:["Entities and relationships alongside features","Knowledge graph feature layers and tables","Arcade knowledge-graph functions in pop-ups","Provenance tracking per property value","File Knowledge Graph added at 12.1 (no server needed)"]},
+stac:{n:"STAC catalogs",tier:"manage",g:"System of record",deploy:["desktop","ent"],status:"ga",
+  d:"SpatioTemporal Asset Catalog. ArcGIS Pro supports STAC connections for browsing and consuming STAC APIs and static catalogs; support is currently imagery-focused.",
+  k:["New STAC Connection in the Pro Catalog pane","Search STAC items, add as layers or to a mosaic dataset","OAuth 2.0 and custom-header authentication","Non-imagery STAC is currently custom middleware — see gap note"]},
+
+/* ── SERVE ───────────────────────────────────────────────────────── */
+enterprise:{n:"ArcGIS Enterprise",tier:"serve",g:"Platform",deploy:["ent"],status:"ga",is3d:true,
+  d:"The self-hosted platform: Portal, ArcGIS Server as hosting server, ArcGIS Data Store, Web Adaptor. Base deployment at 12.x requires both a relational store and an object store.",
+  k:["On-premises, private cloud or customer cloud tenancy","No credit consumption","Full control of cache, sizing and security","Long-term-support releases available"]},
+k8s:{n:"ArcGIS Enterprise on Kubernetes",tier:"serve",g:"Platform",deploy:["k8s"],status:"ga",note:4,
+  d:"Microservice deployment on {{k8sfull}}, plus GKE, OpenShift, RKE2 or Tanzu. All seven 3D layer types are supported, with caches in the object store backed by {{blob}}.",
+  k:["Kubernetes 1.33–1.35; x86_64 Linux worker nodes only","Not at feature parity — no Velocity, Knowledge, Data Pipelines or Data Interoperability","No long-term-support release","Scale CachingTools before cache generation, and the Tile server for 3D read throughput","500 GB package upload cap","Standard HA sizing starts around 74 vCPU / 153 GiB"]},
+online:{n:"ArcGIS Online",tier:"serve",g:"Platform",deploy:["online"],status:"ga",is3d:true,note:3,
+  d:"Esri-hosted SaaS. Same seven 3D layer types as Enterprise, but no referenced-cache publishing, no server roles, and 3D caches consume credits.",
+  k:["1.2 credits per GB per month for 3D caches","500 GB package upload maximum","No referenced-cache / i3sREST publishing","Velocity big data analytics is Online-only","Fastest path to a demonstrable pilot"]},
+sceneservice:{n:"Scene services (I3S)",tier:"serve",g:"3D services",deploy:["ent","k8s","online"],status:"ga",is3d:true,
+  d:"The I3S-based service type behind six of the seven 3D layer types. I3S is an OGC Community Standard, currently version 1.3.",
+  k:["3D object, building, mesh, 3D point, point cloud, voxel","3D object and 3D point are editable via an associated feature layer","Supports full and partial cache update","Source is an SLPK, .eslpk or i3sREST content"]},
+tiles3d:{n:"3D tiles services (OGC)",tier:"serve",g:"3D services",deploy:["ent","k8s","online"],status:"ga",is3d:true,
+  d:"OGC 3D Tiles served from a .3tz package or a 3D tiles dataset. Covers 3D object, mesh and the new Gaussian splat layer type.",
+  k:["Not editable and not usable for geoprocessing","Gaussian splat layers are 3D tiles, not I3S","Service publishing requires Enterprise 12.0+","Replace Layer supported at 12.1"]},
+featureservice:{n:"Feature services",tier:"serve",g:"Core services",deploy:["ent","k8s","online"],status:"ga",
+  d:"The workhorse for asset tags, inspection records, oriented imagery layers and anything editable. Oriented imagery is a feature service — not an image service.",
+  k:["Editable, queryable, offline-syncable","Oriented imagery layers are feature layers","Attachments for secured imagery","Backed by the relational store or an enterprise geodatabase"]},
+imageserver:{n:"ArcGIS Image Server",tier:"serve",g:"Core services",deploy:["ent","k8s"],status:"ga",
+  d:"Dynamic image services from mosaic datasets, plus distributed raster analytics. The elevation, ortho and DSM tier under a 3D scene, and the prerequisite for Deep Learning Studio.",
+  k:["Enterprise-only licensing role","Requires a raster store","One raster-analytics site per deployment","Underpins Deep Learning Studio"]},
+velocity:{n:"ArcGIS Velocity",tier:"serve",g:"Real-time",deploy:["ent","online"],status:"new",note:7,
+  d:"Real-time and big data analytics. Available for Enterprise (Windows/Linux) from 12.1 as ArcGIS Velocity Server, in addition to the ArcGIS Online subscription. The designated successor to GeoEvent Server.",
+  k:["Note: <em>not</em> an ArcGIS Server licensing role — a standalone federated server component","21+ native feed types including Kafka and MQTT","Geofencing, motion statistics, incident detection","Enterprise flavour excludes big data analytics (ArcGIS Online only)","Not available on Kubernetes","Esri markets it for operational / living digital twins"]},
+geoevent:{n:"ArcGIS GeoEvent Server",tier:"serve",g:"Real-time",deploy:["ent"],status:"dep",note:7,
+  d:"Deprecated April 2026. Final release at Enterprise 12.3, removed at 12.4. Shown here only so existing deployments can be recognised — do not design new work on it.",
+  k:["Do not design new systems on GeoEvent","Migrate to ArcGIS Velocity","Existing customers with maintenance receive a Velocity Server licence"]},
+knowledgeserver:{n:"ArcGIS Knowledge Server",tier:"serve",g:"Core services",deploy:["ent"],status:"ga",
+  d:"Serves knowledge graphs. Requires a second federated ArcGIS Server site and a graph store on its own machine.",
+  k:["Enterprise-only licensing role","Second federated server site required","Not available on Kubernetes","Replication and sync added at 12.1"]},
+restapi:{n:"ArcGIS REST &amp; OGC APIs",tier:"serve",g:"Integration",deploy:["ent","k8s","online","dev"],status:"ga",
+  d:"The integration surface for external enterprise platforms. Enterprise can publish WMS, WMTS, WFS, OGC API–Features, WCS and WPS in addition to the ArcGIS REST API.",
+  k:["ArcGIS REST API across all service types","OGC services publishable from Enterprise only","Custom data feeds, webhooks, SOEs and SOIs","ArcGIS API for Python","Note: OGC API–Tiles and –Maps are not publishable at 12.1"]},
+gsdbapi:{n:"Custom STAC / catalog API",tier:"serve",g:"Integration",deploy:["ent","dev"],status:"custom",
+  d:"Solution-specific middleware that exposes underlying 3D feature classes through a single search and access layer in STAC format. Dynamically queries feature layers and converts responses to STAC items; typically hosted as a serverless function.",
+  k:["Custom middleware, not core product","Pattern proven in the ExxonMobil GSDB solution","Supports external consumption apps","Not on a published ArcGIS roadmap — see gap note"]},
+
+/* ── CONSUME ─────────────────────────────────────────────────────── */
+sceneviewer:{n:"Scene Viewer",tier:"consume",g:"Web viewing",deploy:["ent","online"],status:"ga",is3d:true,
+  d:"The browser client for web scenes. June 2026 added measure volume (beta), Gaussian splat analysis, and an oriented imagery Location tool giving a ground-level view alongside the scene.",
+  k:["Slice, line of sight, elevation profile, measure volume","Gaussian splat support with analysis tools","Oriented imagery Location tool (ArcGIS Online)","Not configurable or extensible — see gap note","Shortcut URL scenes.arcgis.com"]},
+mapviewer:{n:"Map Viewer",tier:"consume",g:"Web viewing",deploy:["ent","online"],status:"ga",
+  d:"The 2D browser client. Relevant here because it hosts the oriented imagery viewer from 11.2 onward — often the fastest way to get 360° imagery in front of a planner.",
+  k:["Oriented imagery viewer from the layer Options menu","2D — separate app from Scene Viewer","Floor-aware map configuration for indoor content"]},
+exb:{n:"ArcGIS Experience Builder",tier:"consume",g:"Web apps",deploy:["ent","online"],status:"ga",is3d:true,
+  d:"The recommended app builder — Web AppBuilder is retiring. Supports web scenes in the Map widget, with 2D and 3D views synced in one app.",
+  k:["3D Toolbox widget: slice, daylight, shadow cast, line of sight, weather","Oriented Imagery Viewer widget with superimposed 3D view","GeoBIM widgets: Document Explorer, Link Explorer, Document Viewer","Configurable — supportable and customer-changeable","Web AppBuilder retires in ArcGIS Online through 2026–27"]},
+oiviewer:{n:"Oriented Imagery Viewer widget",tier:"consume",g:"Web apps",deploy:["ent","online"],status:"ga",is3d:true,note:6,
+  d:"The current Experience Builder widget for oblique, street-side, inspection and 360° imagery. In a scene the footprint renders as a 3D frustum; the superimposed view drapes the image as a textured mesh onto the 3D scene.",
+  k:["360°, oblique, street-side and inspection modes","Superimposed view onto the 3D scene","Explore images in 3D, filtered by z-value","The Classic widget is deprecated and being removed"]},
+instant:{n:"ArcGIS Instant Apps",tier:"consume",g:"Web apps",deploy:["ent","online"],status:"ga",is3d:true,
+  d:"Configuration-only apps. The 3D Viewer template is purpose-built for scenes; Observer, Atlas, Compare and Exhibit also accept web scenes.",
+  k:["3D Viewer: navigation, slides, slice, measure, line of sight","Observer: scene plus extent-driven statistics","Compare: up to four maps or scenes side by side","Minutes to stand up — good for pilots"]},
+dashboards:{n:"ArcGIS Dashboards",tier:"consume",g:"Web apps",deploy:["ent","online"],status:"ga",
+  d:"Operational dashboards. The map element accepts web scenes as well as web maps, with scene slides and pan/rotate options.",
+  k:["Web scenes supported in the map element","Only 3D object and 3D point layers with associated feature layers can drive other elements","Natural home for work-order, permit and inspection status"]},
+storymaps:{n:"ArcGIS StoryMaps",tier:"consume",g:"Web apps",deploy:["ent","online"],status:"ga",
+  d:"Narrative delivery. Useful for incident reconstruction write-ups, turnaround readiness briefings and executive communication.",
+  k:["Embeds web scenes and express maps","Good for incident reconstruction narratives"]},
+indoorsviewer:{n:"ArcGIS Indoors Viewer",tier:"consume",g:"Web viewing",deploy:["ent","online"],status:"ga",
+  d:"Web client for indoor floor-aware content, part of the ArcGIS Indoors Maps licensing tier, which includes unlimited Indoors User user types.",
+  k:["Floor filter and indoor routing","Unlimited Indoors User user types","Kiosk variant for on-site displays"]},
+xrviewer:{n:"XR Viewer",tier:"consume",g:"Immersive",deploy:["dev"],status:"beta",is3d:true,note:10,
+  d:"No-code VR viewer for existing web scenes and 3D layers from ArcGIS Online or Enterprise. Virtual tabletop, bird's-eye to ground-level transitions, shared avatars, presentation mode.",
+  k:["Beta — Early Adopter Program, no GA date announced","Meta Quest 3 / 3S or newer plus a supported PC","Desktop mode for participants without headsets","Esri lists training and inspection as target use cases"]},
+vr360:{n:"360 VR",tier:"consume",g:"Immersive",deploy:["online"],status:"ga",
+  d:"Lightweight no-code 360° panoramic VR generated from web scenes or CityEngine scenes. Viewable in a browser on XR devices, mobile and desktop.",
+  k:["No headset required — works in a browser","Generated from an existing web scene","Low-effort immersive proof of concept"]},
+earth:{n:"ArcGIS Earth (desktop)",tier:"consume",g:"Desktop",deploy:["desktop"],status:"ga",is3d:true,
+  d:"Free Windows 3D globe client (2.7.1, June 2026), included with every user type. Esri positions it as a lightweight, immersive 3D experience that complements ArcGIS Pro and Scene Viewer, letting <em>anyone in the enterprise</em> view 3D maps over the internet or behind a firewall. For an industrial deployment its real strengths are mass deployment, lockdown and disconnected operation.",
+  k:["Reads web scenes, 3D object / integrated mesh / point cloud / 3D point scene layers, local SLPK, and OGC 3D Tiles (.3tz and services)","<b>Genuinely edits feature services</b> — add, update and delete geometry and attributes, with the edit-features privilege","The definitive KML client in ArcGIS: full OGC KML create, edit, network links, overlays, models","Measure incl. 3D height, elevation profile, line of sight (incl. animated observer), viewshed, underground navigation","Silent MSI deployment with a locked config.xml: preset portals, disableAddPortal, startupLayers, classification banner","<b>Air-gap ready</b> — blockArcGISOnline, local KML icons, on-prem geocoders, all-local data","Enterprise logins via SAML","Local REST Automation API for driving the globe from another app (not in the Microsoft Store build)","Global scene only. No building scene layer, voxel, Gaussian splat or oriented imagery support","Line of sight and viewshed are screen-space exploratory analyses — results vary with zoom and are not saved"]},
+earthmobile:{n:"ArcGIS Earth Mobile",tier:"consume",g:"Mobile &amp; field",deploy:["mobile"],status:"ga",is3d:true,
+  d:"Free iOS and Android 3D globe client (2.7, May 2026). The answer to \"can I see the 3D model on a tablet in the plant?\" — it views the same scene layer types as desktop, works offline, and does tabletop and world-scale AR. It is a viewing and markup client, not an editing one.",
+  k:["Same four scene layer types as desktop, plus web scenes <em>with slides</em>, 3D Tiles, and sideloaded SLPK / MSPK / MMPK","<b>Tabletop AR</b> and world-scale AR (beta, 2.6) — a miniature or full-scale overlay of the site","Offline: download packages and map tiles from portal, or sideload files directly","Measure incl. 3D height, line of sight, viewshed, underground mode","Drawings with attributes and photo attachments; package to KMZ and upload to the portal","MDM deployable via Intune or AirWatch with a forced portal URL — though Esri Support does not cover MDM deployments","Enterprise logins via SAML","No documented feature service editing, no elevation profile, no animated analysis","Complex KML and non-.dae 3D models unsupported; MSPK must use Web Mercator Aux Sphere tiling"]},
+jssdk:{n:"ArcGIS Maps SDK for JavaScript",tier:"consume",g:"Developer",deploy:["dev"],status:"ga",is3d:true,
+  d:"The foundation under Scene Viewer, Experience Builder, Instant Apps and StoryMaps. SceneView is the 3D view. The route when configurable apps do not reach far enough.",
+  k:["SceneView for 3D","OrientedImageryLayer and OrientedImageryViewer","Version 5.0 dropped Oriented Imagery Classic support","The answer for custom 3D editing on the web today"]},
+gamesdk:{n:"Maps SDKs for Game Engines",tier:"consume",g:"Immersive",deploy:["dev"],status:"ga",is3d:true,
+  d:"ArcGIS Maps SDK for Unity and for Unreal Engine, both at 2.4.0 (August 2026). The supported path to headset-based, photorealistic, world-scale VR and AR built on ArcGIS data.",
+  k:["Unity and Unreal Engine 5.5–5.7","3D Tiles, vertical coordinate systems, custom materials","A build effort — not a configurable app","The realistic route for committed immersive training"]},
+geobim:{n:"ArcGIS GeoBIM",tier:"consume",g:"Web apps",deploy:["ent","online"],status:"ga",
+  d:"Links models, documents and Autodesk issues to GIS features without moving or duplicating data — files stay in Autodesk Forma. Included with both ArcGIS Online and Enterprise 11.4+; no separate purchase.",
+  k:["Autodesk Forma (formerly Construction Cloud)","Revit, IFC, AutoCAD, Civil 3D","Issue dashboards and Field Maps office-to-field issues","Creating projects needs an Autodesk Forma subscription","Not available on Kubernetes"]},
+workflow:{n:"ArcGIS Workflow Manager",tier:"consume",g:"Web apps",deploy:["ent"],status:"ga",
+  d:"Repeatable task and job management. Relevant where inspection findings must drive a defined remediation process with accountability and audit trail.",
+  k:["Job templates and step-based workflows","Enterprise server role","Available on Kubernetes from 12.1"]},
+allsource:{n:"ArcGIS Pro (analysis client)",tier:"consume",g:"Desktop",deploy:["desktop"],status:"ga",is3d:true,
+  d:"Pro appears twice by design: it is both the authoring environment and the heavyweight analysis client where measurement, clash review and detailed 3D interrogation actually happen.",
+  k:["Full 3D measurement and analysis","Oriented imagery viewing (3.4+ for 360°)","Editing of 3D features in feature layers","Offline oriented imagery from 3.6"]}
+};
+
+/* ═══════════════ DATA-TYPE FLOWS ═══════════════ */
+const FLOWS = {
+laser:{n:"Laser scanning",c:"#0079C1",
+  desc:"Terrestrial and mobile laser scanning produces the densest and most accurate representation of a plant, and is the source most likely to support measurement-grade workflows. The catch is at the front door: ArcGIS Pro reads LAS, zLAS and LAZ natively, so scanner-native formats generally need a conversion step before anything else can happen.",
+  steps:["E57 / RCP / PTX","Convert to LAS or LAZ","LAS dataset in Pro","Classify (3D Analyst / deep learning)","Point cloud scene layer content","Object store or i3sREST","Scene service","Scene Viewer, Experience Builder, Pro"],
+  caveat:"E57, RCP/RCS, PTS, PTX, PLY and FLS are <b>not</b> natively supported as point clouds in ArcGIS Pro. Plan for ArcGIS Data Interoperability or a vendor conversion step, and set expectations accordingly. Broader E57 support is a live customer request.",
+  nar:{
+   collect:"Capture happens entirely outside ArcGIS. A survey team occupies the plant with a terrestrial scanner — Leica RTC360 or P-series, FARO Focus, Trimble X-series — or walks it with a mobile system such as NavVis VLX or a Leica BLK2GO. Registration, the process of tying hundreds of individual scan positions into one coherent point cloud, also happens in vendor software: Leica Cyclone or Cyclone REGISTER 360, FARO SCENE, Trimble RealWorks, or NavVis IVION. <b>This registration step is where accuracy is won or lost</b>, and it is entirely outside Esri's control — which is exactly why accuracy questions should be routed to a survey specialist rather than answered from the software side. What arrives at the ArcGIS boundary is a registered cloud, usually as E57 or a vendor format, ideally with a documented control network and residuals.",
+   process:"First a conversion, because ArcGIS Pro will not read E57, RCP, PTX or FLS as point clouds. ArcGIS Data Interoperability (FME) is the in-platform route; CloudCompare, Autodesk ReCap or the scanner vendor's own exporter are common alternatives. Target LAS or LAZ. From there the work is in ArcGIS Pro: build a <b>LAS dataset</b> to index the tiles, then classify. The 3D Analyst extension provides Classify LAS Ground, Building, Noise and By Height; for plant structure — pipework, vessels, steel, cable tray — rule-based classification tends to disappoint and the deep learning toolset is the better tool, with Point Transformer V3 as the default architecture at Pro 3.7. Expect to train on your own labelled sample, because no pretrained refinery model exists. Thin and tile before publishing: full-density registered scan data is far denser than any web client needs.",
+   formats:["E57 / RCP / PTX / FLS","LAS or LAZ","LAS dataset (.lasd)","Point cloud scene layer content","SLPK or i3sREST"],
+   store:"Two decisions. The classified LAS or LAZ is the archival master and belongs in {{blob}} or a managed file share — it is large, it is written once, and it is read rarely. The published cache is the working copy: for a whole refinery it will comfortably exceed the ~200 GB threshold at which Esri recommends <b>i3sREST referenced content</b> in a registered cloud store rather than copy-data publishing. That is an ArcGIS Enterprise pattern with no ArcGIS Online equivalent, and it is usually the single fact that decides Enterprise for an industrial customer. Authenticate the cloud store with {{identity}}. The object store still holds hosted caches for anything published the conventional way.",
+   consume:"Point cloud scene layers render in Scene Viewer, Experience Builder and Instant Apps, with slice and measurement available through the 3D Toolbox widget. ArcGIS Pro remains the client for serious interrogation — full measurement, profile extraction and clash review. ArcGIS Earth desktop and mobile both read point cloud scene layers, which gets the cloud onto a tablet in the field. For anything measurement-critical, do it in Pro and treat the web clients as review and communication surfaces."},
+  p:{capture:["scanners"],produce:["datainterop","pro","pro3d","prodl","indoorspro"],manage:["egdb","objectstore","cloudstore","portal"],serve:["enterprise","sceneservice","online","featureservice"],consume:["sceneviewer","exb","allsource","pro","xrviewer","earth","earthmobile","instant"]}},
+drone:{n:"Drone photogrammetry",c:"#128F76",
+  desc:"The most repeatable and lowest-friction capture method for whole-site coverage, and the one most likely to be re-flown on a cadence. Three production paths — desktop, cloud SaaS and server — with the same output families, so the choice is driven by data sovereignty, volume and who is doing the work.",
+  steps:["Flight planning (ArcGIS Flight)","Capture","Drone2Map / Reality for Pro / Site Scan / Reality Server","True ortho, DSM, DTM, point cloud, 3D mesh, splats","SLPK, 3D Tiles, i3sREST","Scene and image services","Web, desktop and field clients"],
+  caveat:"Reality Server is still <b>beta</b> at Enterprise 12.1. For committed plant-scale production today, the supportable answers are Reality Studio, Reality for ArcGIS Pro, or Site Scan cloud processing.",
+  nar:{
+   collect:"This is the one capture method with a genuine end-to-end Esri path. ArcGIS Flight plans and executes missions on an iPad; Site Scan for ArcGIS manages the fleet, the flight log and the pilot records. Third-party planning — DJI Pilot, UgCS, Pix4Dcapture — is equally common and produces the same result: a folder of geotagged images plus a flight log. For a plant, plan both <b>nadir and oblique</b> passes; nadir alone will not reconstruct vertical structure, and vertical structure is the entire point in a refinery. Esri's guidance is 80% forward and 80% lateral overlap, with a recommended minimum of 100 nadir or 300 oblique images. Ground control targets are what convert a pretty model into a measurable one. Note the operational constraint that usually bites first: flying a live process area needs permits, and often a shutdown window.",
+   process:"Four production routes, same output families, chosen on volume and data sovereignty. <b>ArcGIS Drone2Map</b> for a single site on a workstation, and it works fully offline — which matters for secure plant environments. <b>ArcGIS Reality for ArcGIS Pro</b> when the work belongs inside a wider Pro workflow. <b>ArcGIS Reality Studio</b> for site-to-country scale. <b>ArcGIS Reality Server</b> distributes processing across machines and removes the workstation bottleneck entirely — architecturally the right answer for plant scale, and still beta. Site Scan processes in the cloud with no local GPU at all. Outside Esri, Pix4Dmapper, Agisoft Metashape, Bentley ContextCapture and RealityCapture all produce meshes ArcGIS can ingest. Products in every case: true ortho, DSM, DTM, point cloud, 3D mesh, and now Gaussian splats.",
+   formats:["Geotagged JPEG + flight log","Reality mapping workspace","3D mesh, point cloud, true ortho, DSM/DTM","SLPK, 3D Tiles (.3tz), OBJ, LAS","Scene service or 3D tiles service"],
+   store:"Rasters — true ortho, DSM, DTM — go to a raster store, which can be a folder, a file share, or a cloud store on {{blob}}. The mesh and point cloud follow the same logic as laser scanning: below a couple of hundred gigabytes, publish copy-data into the object store; above it, precreate the cache and publish by reference. If you are producing on {{vm}}, keep the raster store in {{region}} — cross-region reads are measurably slower and Esri's own guidance is to keep cloud stores co-located with the site that reads them.",
+   consume:"Integrated mesh is the layer that makes a refinery look like a refinery, and it is the backdrop for almost every other workflow on this page. It renders in Scene Viewer, Experience Builder, Instant Apps and ArcGIS Earth. Remember what it cannot do: no symbology, no labels, no pop-ups, no query, no editing. All interactivity has to ride on separate feature layers positioned over it — which is precisely the job the spatial asset tagging pattern does. Display-time Clip, Mask and Replace modifiers let you cut away or swap re-captured areas, capped at 2,000 modifications."},
+  p:{capture:["flight","sitescan","scanners"],produce:["drone2map","realitypro","realitystudio","realityserver","sitescan","pro","prodl"],manage:["rasterstore","objectstore","cloudstore","portal","egdb"],serve:["enterprise","online","sceneservice","tiles3d","imageserver"],consume:["sceneviewer","exb","instant","dashboards","jssdk","allsource","earth","earthmobile","xrviewer"]}},
+oi360:{n:"360° photography",c:"#7A2EA6",
+  desc:"The highest value-per-dollar capture for remote work preparation: cheap to collect, cheap to refresh, and immediately legible to non-GIS staff. Modelled in ArcGIS as an <em>oriented imagery dataset</em> published as a feature layer — not an image service — so it needs no Image Server licence. Images themselves live outside the dataset, referenced by path, URL or feature attachment.",
+  steps:["Capture (360 camera, QuickCapture, Indoors Mobile, Site Scan, Drone2Map)","Oriented imagery dataset in Pro","Add images — EXIF/XMP or frames-and-cameras CSV","Build footprints","Generate service","Hosted feature layer","Map Viewer, Scene Viewer, Experience Builder"],
+  caveat:"Use the current oriented imagery model, not <b>Oriented Imagery Classic</b>. The Classic OIC data model, Pro add-in, Experience Builder widget and API are all deprecated; the Classic widget was removed from ArcGIS Online in February 2026 and Maps SDK for JavaScript 5.0 no longer visualises OICs.",
+  nar:{
+   collect:"The cheapest useful capture on this page, and the one non-GIS staff understand instantly. Hardware is third-party — Insta360 X-series, GoPro Max, Ricoh Theta, or a trolley-mounted rig for systematic coverage; NavVis and Matterport produce 360° panoramas alongside their point clouds. On the Esri side, <b>ArcGIS QuickCapture</b> can capture oriented imagery directly from a phone, writing camera heading, pitch and roll from the device sensors. <b>ArcGIS Indoors Mobile</b> captures indoor 360° with Insta360 X5 and GoPro Max2. Drone2Map 2026.1 and Site Scan both now publish 360° panoramas as oriented imagery layers. What matters far more than camera choice is <b>position quality</b> — a panorama with a poor position is worse than useless because it will be trusted. Indoors and under pipe racks, GNSS will not save you; plan a traverse or use VSLAM.",
+   process:"Build an <b>oriented imagery dataset</b> in ArcGIS Pro using the Oriented Imagery Tools toolbox — no extension needed, Standard or Advanced. Create the dataset, then add images; the tool reads EXIF and XMP directly, and from Pro 3.6 it also accepts a frames-and-cameras CSV or a mosaic dataset, which is how post-adjustment orientations from ArcGIS Reality flow through. Set OrientedImageryType to <code>360</code>, which defaults to 360° horizontal and 180° vertical field of view. Only X, Y and ImagePath are strictly required, but supplying CameraHeading, CameraHeight and OrientationAccuracy is what unlocks the measurement tools and the superimposed view. Build footprints, then generate the service. For indoor video walkthroughs, the ArcGIS Indoors tool <em>360 Video To Oriented Imagery</em> turns an equirectangular MP4 into a dataset using VSLAM.",
+   formats:["Equirectangular JPEG (+ COG, MRF)","Oriented imagery dataset (geodatabase)","Footprints + orientation attributes","Hosted feature layer","Oriented imagery layer"],
+   store:"<b>The images are never stored in the dataset.</b> ImagePath holds a local path, a network path, a web URL, or the literal <code>FA</code> meaning feature attachment. That gives three real options: put the imagery in {{blob}} and reference it by URL, which scales best; store it as feature attachments, which is the current secure route in ArcGIS Online; or from Enterprise 11.5, serve it through custom data feeds. The dataset itself is small and lives in the geodatabase. Because the published result is a <b>feature service, not an image service</b>, no ArcGIS Image Server licence is involved — a frequently useful cost point.",
+   consume:"Broad client support and this is the flow's real strength. Map Viewer has hosted the oriented imagery viewer since 11.2 and launches it from the layer's Options menu. Scene Viewer gained a Location tool in June 2026 giving a ground-level view alongside the 3D scene. In Experience Builder the <b>Oriented Imagery Viewer widget</b> renders the footprint as a 3D frustum and can superimpose the photograph onto the scene as a textured mesh — the single most convincing thing to show a planner. Also available in Instant Apps, ArcGIS Pro (3.4+ for 360°) and Excalibur. Note ArcGIS Earth does not do oriented imagery on either client."},
+  p:{capture:["scanners","quickcapture","indoorsmobile","sitescan","drone2map"],produce:["pro","orientedtools","indoorspro","drone2map","sitescan"],manage:["egdb","cloudstore","portal"],serve:["enterprise","online","featureservice"],consume:["mapviewer","sceneviewer","exb","oiviewer","instant","allsource","pro"]}},
+lidar:{n:"Aerial &amp; mobile LiDAR",c:"#00619B",
+  desc:"Aerial and mobile LiDAR gives site-wide structural context, terrain and vegetation encroachment, and — once classified — a clean separation of ground, structure and noise. Classification is where the value is added, and it is increasingly a deep learning job rather than a manual one.",
+  steps:["LAS / LAZ delivery","LAS dataset","Classify: ground, building, noise, by height","Deep learning classification and object detection","Point cloud scene layer content","Object store or i3sREST","Scene service","3D clients"],
+  caveat:"All point cloud classification requires the <b>3D Analyst</b> extension; deep learning classification additionally requires Deep Learning Essentials and a capable GPU. Budget for both.",
+  nar:{
+   collect:"Contracted acquisition, almost always. A fixed-wing or rotary aerial survey for site-wide coverage and terrain, or a vehicle-mounted mobile mapping system — Leica Pegasus, Trimble MX — for roads, racks and corridors. The deliverable is normally classified or semi-classified LAS or LAZ with a survey report. Unlike terrestrial scanning, this arrives in a format ArcGIS reads natively, so there is no conversion tax. Specify the coordinate reference system and vertical datum in the contract; mismatched vertical datums between an aerial LiDAR delivery and a terrestrial scan is one of the most common and most expensive integration problems on an industrial site.",
+   process:"Build a LAS dataset in ArcGIS Pro, then improve the classification you were given — vendor classifications are usually ground, building and vegetation at best, which is not enough for a plant. The 3D Analyst tools cover ground, noise, overlap and height-based classes. For structure, the deep learning toolset is the better instrument: Prepare Point Cloud Training Data, Train Point Cloud Classification Model, then Classify Point Cloud Using Trained Model, with an object detection toolset alongside for discrete assets. Training runs on {{gpu}}. Derive what you need — DTM and DSM rasters via Point Cloud To Raster, or extracted multipatches — then generate point cloud scene layer content. CloudCompare and LAStools remain common for QA and thinning outside ArcGIS.",
+   formats:["LAS / LAZ delivery","LAS dataset (.lasd)","Reclassified LAS + derived DTM/DSM","Point cloud scene layer content","SLPK or i3sREST"],
+   store:"The LAS or LAZ master is archival — {{blob}} with lifecycle rules is the sensible home, since it is written once and read on demand. Derived rasters go to the raster store, which is also where ArcGIS Image Server will serve elevation from. Published point cloud caches go to the object store, or to a registered cloud store as i3sREST content once they get large. If deep learning is in scope, remember that <b>Deep Learning Studio requires a file share raster store</b> rather than a cloud one — a small but real constraint on an otherwise cloud-native design.",
+   consume:"Point cloud scene layers in Scene Viewer, Experience Builder, Instant Apps, ArcGIS Earth and Pro. The derived elevation surface is arguably more valuable day to day than the cloud itself: it becomes the ground under every scene, the input to line of sight and viewshed, and the reference for change detection between capture campaigns. Publish it as an elevation image service and it silently improves every other flow on this page."},
+  p:{capture:["scanners"],produce:["pro","pro3d","prodl","realitypro","datainterop"],manage:["egdb","objectstore","cloudstore","rasterstore","portal"],serve:["enterprise","sceneservice","imageserver","online"],consume:["sceneviewer","exb","allsource","pro","instant","earth","xrviewer"]}},
+imagery:{n:"Satellite &amp; aerial imagery",c:"#C77E00",
+  desc:"The context layer under everything else, and the input to change detection between capture campaigns. This is also the one pipeline where ArcGIS STAC support is mature — Pro can connect to a STAC API, search collections and pull items straight into a mosaic dataset.",
+  steps:["Satellite / aerial acquisition","STAC discovery in Pro","Reality mapping: DSM, DTM, true ortho","Deep learning feature extraction","Mosaic dataset in a raster store","Image service","Map Viewer, Scene Viewer, dashboards"],
+  caveat:"STAC support in ArcGIS is <b>imagery-focused</b>. Applying STAC to a non-imagery 3D asset catalog is currently custom middleware and is not on a published roadmap.",
+  nar:{
+   collect:"Rarely captured, usually subscribed. Commercial satellite tasking through Maxar, Airbus or Planet; national aerial programmes; or open archives. Increasingly the access route is a <b>STAC API</b> rather than a file delivery, and ArcGIS Pro can consume that directly — right-click in the Catalog pane, New STAC Connection, then Search STAC Items, and pull results straight into a mosaic dataset. Both major clouds host open catalogs Esri names explicitly: AWS Open Data and the Microsoft Planetary Computer. Authentication supports OAuth 2.0 and custom headers for commercial providers.",
+   process:"For plant work the useful products are change detection between epochs and automated feature extraction, not the imagery itself. ArcGIS Reality for ArcGIS Pro and Reality Studio handle satellite-derived DSM, DTM and true ortho, including Cartosat-2 and Cartosat-3 since May 2026. Deep learning does the extraction: in ArcGIS Pro with Deep Learning Essentials, or in the browser with <b>Deep Learning Studio</b>, which runs the whole collect-samples, train, infer loop in ArcGIS Enterprise and requires a federated ArcGIS Image Server configured for raster analytics. Raster analytics distributes the inference across the Image Server site; on Kubernetes each raster analytics pod consumes one GPU, so ten replicas means ten GPUs.",
+   formats:["STAC items / COG","Mosaic dataset","Derived DSM, DTM, true ortho","Extracted features","Image service + feature service"],
+   store:"Mosaic datasets are references, not copies — the imagery itself stays in the raster store, which for cloud deployments is {{blob}}. This is the flow where cloud-native storage genuinely pays: COGs read efficiently by byte range, so there is no reason to stage imagery locally. Note the ArcGIS Pro connection-file detail that if a folder holds more than about 30,000 items you should set <code>GDAL_DISABLE_READDIR_ON_OPEN</code> to YES — very likely with deep tiled archives. Esri also cautions that it does not test or certify S3-compatible third-party storage, and Technical Support will not troubleshoot it.",
+   consume:"Image services in Map Viewer, Scene Viewer, Experience Builder and Dashboards, and as the elevation and basemap context under every 3D scene. The extracted features are the durable output — they join the asset record and outlive the imagery epoch that produced them."},
+  p:{capture:["scanners"],produce:["realitypro","realitystudio","realityserver","dlstudio","prodl","pro"],manage:["rasterstore","stac","cloudstore","portal"],serve:["imageserver","enterprise","online","restapi"],consume:["mapviewer","sceneviewer","exb","dashboards","allsource"]}},
+tags:{n:"Spatial asset tagging",c:"#B7295A",
+  desc:"The 3D system-of-record pattern: recording where millions of physical assets are, in real-world coordinates, so that other systems can reference them, enrich them and use them in desktop, field and web workflows. Notionally four feature classes — point, line, polygon and multipatch — in an enterprise geodatabase, served as feature layers. This is not about storing complex 3D models; it is about making asset location a first-class, normalised, globally consistent thing.",
+  steps:["Author or import tags (Pro, field capture, bulk load)","Enterprise geodatabase: point, line, polygon, multipatch","ArcGIS Enterprise feature services","Optional STAC / catalog API middleware","Consumption apps: Experience Builder, Maps SDK, field"],
+  caveat:"Two soft spots. The catalog API layer is <b>custom middleware</b>, not core product. And 3D read/write from mobile has no clear product answer today — Field Maps is 2D, ArcGIS Earth is viewing-oriented, and a rich custom field experience is a Maps SDK investment.",
+  nar:{
+   collect:"Tags arrive three ways and most programmes use all three. <b>Bulk derivation</b> from existing sources — extracting positions from P&amp;ID and plant design systems, from classified point clouds, or from CAD, then reconciling against the maintenance system's tag register. <b>Authoring in ArcGIS Pro</b>, placing and editing 3D features directly against the mesh or point cloud, which is how exceptions and corrections get handled. <b>Field verification</b> through Field Maps or Survey123, confirming or correcting positions in situ — in 2D, because that is what the field apps do. The hard part is never the geometry. It is <b>tag reconciliation</b>: agreeing that the thing in the maintenance system and the thing in space are the same thing, and keeping that true.",
+   process:"Comparatively light, because this pattern deliberately is not about complex geometry. ArcGIS Pro authors and edits the four feature classes; ArcGIS Notebooks and the Python API handle bulk load, reconciliation and scheduled synchronisation with the source of truth; ArcGIS Data Interoperability translates whatever the plant design system emits. The important design decision is made here: <b>store the asset location in real-world coordinates</b>, not as referential local plant coordinates, while preserving the high-precision local values through documented transformations. That is what makes the tag database globally normalised and lets a single system span multiple sites.",
+   formats:["Source tag register + CAD / P&amp;ID","Point, line, polygon, multipatch feature classes","Enterprise geodatabase","Feature services","Optional STAC catalog items"],
+   store:"An <b>enterprise geodatabase</b> is the system of record — notionally four feature classes tracking asset tags as points, lines, polygons and multipatch volumes. In the cloud that means {{db}}. Two constraints matter: connections must originate from machines in the same cloud, because cross-cloud and on-premises-to-cloud connections may time out; and geodatabases are not supported in any cloud data warehouse, nor in Azure PostgreSQL elastic clusters. ArcGIS Knowledge can carry the non-spatial half — contracts, material lifespan, documents — with the graph store on its own machine. If STAC-style discovery is required, that is custom middleware sitting over the feature services.",
+   consume:"This is the layer everything else joins to. Experience Builder is the configurable front end and has tested well with customers; the Maps SDK for JavaScript is the route when configuration runs out. Field Maps consumes the tags in 2D in the field. ArcGIS Pro edits them. External applications reach them through the ArcGIS REST API, or through a custom catalog API if the consuming ecosystem demands one. The tag is the join key that makes work orders, inspections, permits and documents locatable in 3D — which is the entire point."},
+  p:{capture:["fieldmaps","survey123","pro"],produce:["pro","pro3d","notebooks","datapipelines","datainterop"],manage:["egdb","relstore","portal","knowledge","graphstore","stac"],serve:["enterprise","featureservice","restapi","gsdbapi","knowledgeserver"],consume:["exb","jssdk","allsource","pro","fieldmaps","earth","earthmobile","sceneviewer","dashboards"]}},
+cadbim:{n:"CAD / BIM",c:"#5A6E7F",
+  desc:"The secondary path, for selected assets where engineering geometry exists and matters. ArcGIS GeoBIM is the low-friction option because it links to models, documents and issues without moving or duplicating data — the files stay in Autodesk Forma. Bringing geometry across into the geodatabase is the heavier option, reserved for assets that need to participate in analysis.",
+  steps:["Revit / IFC / AutoCAD / Civil 3D","GeoBIM link, or import via Pro / Data Interoperability","Multipatch or 3D object features","Scene layer content","Scene service","Scene Viewer, Experience Builder, GeoBIM"],
+  caveat:"Revit 2026 files are supported <b>2D-only</b> in GeoBIM. Georeferencing legacy plant CAD is usually the real project risk, not the format conversion.",
+  nar:{
+   collect:"Nothing is captured — this content already exists, in Autodesk Revit, AutoCAD and Civil 3D, in IFC exports, and in plant design systems such as AVEVA E3D, Hexagon SmartPlant and Intergraph PDS. In a refinery the honest expectation is <b>partial and unreliable coverage</b>: good models for recent projects and units, nothing for older plant, and no guarantee that any of it matches what was actually built. That is precisely why BP framed reality capture as the foundation and CAD as supplementary for selected assets. Treat CAD as authoritative for design intent and reality capture as authoritative for as-is condition, and never assume they agree.",
+   process:"Two routes with very different costs. <b>ArcGIS GeoBIM</b> links to models, documents and Autodesk issues without moving or duplicating anything — the files stay in Autodesk Forma, and ArcGIS holds the relationship. It is included with ArcGIS Online and Enterprise 11.4+ at no extra purchase, though authoring projects needs an Autodesk Forma subscription. That is the low-friction answer and usually the right first step. The heavier route brings geometry across into the geodatabase as multipatch or 3D object features, via ArcGIS Pro's BIM and CAD support or ArcGIS Data Interoperability, and is worth it only for assets that must participate in analysis or carry attributes. Either way <b>georeferencing is the real work</b> — plant CAD lives in arbitrary local grids, and reconciling that to a real-world CRS is where the schedule goes.",
+   formats:["Revit (.rvt), IFC, DWG, plant design exports","GeoBIM link, or Pro / Data Interoperability import","Multipatch or 3D object features","Scene layer content","Scene service or 3D tiles service"],
+   store:"With GeoBIM there is almost no storage question — files remain in Autodesk Forma and ArcGIS stores the links, which is much of the appeal. Where geometry is imported, it lands in the enterprise geodatabase on {{db}} and publishes through the object store like any other 3D content. Building scene layers are worth knowing about but come with a client caveat: ArcGIS Earth does not support them, so a BIM-heavy scene will not open on the field tablet.",
+   consume:"GeoBIM's own Experience Builder widgets — Document Explorer, Link Explorer and Document Viewer — surface the model and its documents alongside the map, and issues raised in Autodesk flow through to Field Maps and back. Imported geometry behaves like any scene layer in Scene Viewer, Experience Builder and Pro. For most industrial conversations the document and issue linkage is more valuable than the geometry: engineers want the drawing and the defect record attached to the location, not another rendering."},
+  p:{capture:["cadbim"],produce:["pro","datainterop","indoorspro"],manage:["egdb","objectstore","portal","geobim"],serve:["enterprise","sceneservice","online","tiles3d","geobim"],consume:["sceneviewer","exb","geobim","instant","allsource","pro","earth"]}},
+iot:{n:"Live sensor / IoT",c:"#35AC46",
+  desc:"What turns a visual model into an operational twin. Feeds from historians, condition monitoring and IoT platforms land through ArcGIS Velocity, are analysed with geofencing and anomaly detection, and are surfaced against the 3D environment.",
+  steps:["Sensors, historians, IoT platforms","Velocity feed (Kafka, MQTT, HTTP, 21+ types)","Real-time analytics: geofence, motion, anomaly","Stream and feature layers","Spatiotemporal store for archive","Dashboards and 3D scenes"],
+  caveat:"<b>GeoEvent Server is deprecated</b> — final release at 12.3, removed at 12.4. Velocity is the successor, but the Enterprise flavour excludes big data analytics (Online only) and Velocity is not available on Kubernetes.",
+  nar:{
+   collect:"Entirely outside ArcGIS, and usually outside the GIS team's control. Process historians such as OSIsoft PI or AVEVA PI, condition monitoring systems, SCADA and DCS, plus modern IoT platforms and gateways. The integration surface is Velocity's feed library — over twenty native types including Kafka, MQTT, RabbitMQ, HTTP poll and receiver, cloud IoT services, and on Enterprise also TCP, folder watch and a simulator for testing. <b>The real obstacle here is organisational, not technical.</b> Getting data out of the OT network and into the IT network crosses a security boundary that is deliberately hard to cross, and that conversation takes longer than the implementation.",
+   process:"Velocity's real-time analytics apply processing as the data flows — geofencing against plant areas, motion statistics, incident and anomaly detection, enrichment against the asset register. Rules can raise alerts to Teams, Slack, email or SMS, or write to other systems. ArcGIS Data Pipelines and Notebooks handle the batch and scheduled side, including historical reconciliation. Note the architectural constraint: <b>ArcGIS Velocity for Enterprise excludes big data analytics</b>, which remains ArcGIS Online only, so heavy historical analysis over archived observations may pull you toward Online or toward processing outside ArcGIS entirely.",
+   formats:["MQTT / Kafka / OPC-UA / historian API","Velocity feed","Real-time analytic output","Stream layer + feature layer","Spatiotemporal archive"],
+   store:"Two distinct problems. <b>Current state</b> — the latest reading per asset — is small and lives comfortably in the relational data store as a feature layer, which is what dashboards and scenes query. <b>History</b> is large and sustained; the relational store handles under roughly 200 events per second, beyond which the spatiotemporal big data store is the answer. Velocity can also write outputs directly to {{blob}}, which is often the cheapest place to land raw high-frequency archive that will be analysed elsewhere. Be deliberate about retention up front, because sensor archives grow without limit and nobody deletes them later.",
+   consume:"Dashboards is the natural home for live operational status, and its map element does accept web scenes — though only 3D object and 3D point layers with associated feature layers can drive the other elements, which shapes how you design the scene. Experience Builder combines live status with the 3D environment. This is the layer that converts a visual model into an <b>operational</b> twin: the same plant, but showing what is happening rather than what is there."},
+  p:{capture:["iot","velocity"],produce:["velocity","datapipelines","notebooks"],manage:["velocity","stbds","relstore","portal"],serve:["velocity","geoevent","enterprise","online","featureservice","restapi"],consume:["dashboards","exb","sceneviewer","mapviewer","earthmobile"]}},
+inspection:{n:"Inspection findings",c:"#8A5300",
+  desc:"Corrosion, defects, equipment condition and completed-work verification, captured in the field and visualised against the 3D environment. This is the loop that closes the twin: the model tells the inspector where to go, and the inspector's findings become an attribute of the model.",
+  steps:["Survey123 / Field Maps / QuickCapture in the field","Feature services plus attachments","Knowledge graph links to asset records and documents","Experience Builder and dashboards","Workflow Manager for remediation"],
+  caveat:"Field Maps is <b>2D only</b>. Inspectors navigate in 2D or via 360° imagery, then findings are viewed in 3D back in the office. A true 3D field client is a gap.",
+  nar:{
+   collect:"Three Esri apps, chosen by the shape of the task. <b>Survey123</b> is form-centric and right for structured inspection — corrosion under insulation, thickness readings, condition scoring, permit checks — with conditional logic, offline operation and photo attachments. <b>Field Maps</b> is map-centric, right when the inspector is navigating to assets and updating them in place, and supports floor-aware maps for interiors. <b>QuickCapture</b> is button-centric, for rapid observation at walking pace or with hands occupied. Alongside these, non-Esri inputs land here too: ultrasonic thickness gauges, thermography, drone-based visual inspection, and third-party integrity management systems. The recurring frustration is that <b>the inspector works in 2D while the asset is understood in 3D</b> — mitigated by 360° imagery on the tablet, not solved.",
+   process:"Comparatively little transformation. Findings arrive as features with attachments and are joined to the asset tag — which is why the tagging pattern is a prerequisite rather than a nice-to-have. ArcGIS Notebooks handle scheduled synchronisation with the integrity or maintenance system of record, deduplication, and severity scoring. ArcGIS Knowledge is where the non-spatial relationships live: this finding relates to this asset, which appears in this contract, was inspected by this person, and is documented in these files, with provenance tracked per property.",
+   formats:["Survey responses + attachments","Feature service records","Asset tag join","Knowledge graph entities and relationships","Web layers + dashboards"],
+   store:"Findings live as hosted feature layers in the relational data store, or in the enterprise geodatabase on {{db}} where they need to sit alongside the asset tags under one versioning and archiving regime. Attachments — photographs, thermography, scan reports — are the bulk of the volume and can grow quickly; plan for that in sizing. The knowledge graph requires the ArcGIS Data Store graph store on its own machine, and is Enterprise-only with no Kubernetes support.",
+   consume:"Experience Builder places findings against the 3D environment and the 360° imagery; Dashboards tracks status, backlog and overdue inspections; Workflow Manager drives remediation with accountability and an audit trail. The loop closes here: the model tells the inspector where to go, and the inspector's findings become an attribute of the model. That loop, sustained over time, is what actually distinguishes a digital twin from a very good 3D visualisation."},
+  p:{capture:["survey123","fieldmaps","quickcapture","indoorsmobile"],produce:["pro","notebooks"],manage:["egdb","relstore","knowledge","graphstore","portal"],serve:["enterprise","featureservice","knowledgeserver","online"],consume:["exb","dashboards","sceneviewer","oiviewer","workflow","indoorsviewer","fieldmaps","earthmobile"]}}
+};
+
+/* ═══════════════ MATURITY ═══════════════ */
+const LADDER=[
+{lv:1,t:"Context &amp; basemap",d:"Site boundaries, terrain, imagery and 2D asset locations. Almost every industrial customer is already here, often without calling it a digital twin. The value is orientation and shared reference, not analysis.",p:["online","mapviewer","imageserver","rasterstore","instant"]},
+{lv:2,t:"Reality capture — the as-is site",d:"The plant as it actually is, not as it was designed: point clouds, integrated meshes, 360° imagery, true orthos. This is where the BP enquiry starts, and where reality capture explicitly displaces CAD as the foundation.",p:["drone2map","realitypro","realitystudio","sitescan","pro3d","sceneservice","sceneviewer","oiviewer"]},
+{lv:3,t:"Structured &amp; tagged",d:"Reality capture becomes queryable. Assets get normalised spatial tags in real-world coordinates, floors and interiors are modelled, and non-spatial enterprise records — work orders, inspection history, documents — are linked to features. The step most often skipped, and the one that makes everything above it possible.",p:["egdb","knowledge","indoorspro","indoorsviewer","featureservice","gsdbapi","geobim","prodl"]},
+{lv:4,t:"Analysis &amp; simulation",d:"The model starts answering questions: line of sight, slice and cross-section, access and clash assessment, volumetric change between capture campaigns, deep-learning feature extraction. Decisions get made in the model instead of on the plant.",p:["pro","pro3d","exb","dlstudio","imageserver","instant","dashboards"]},
+{lv:5,t:"Live &amp; immersive operational twin",d:"Real-time telemetry against the 3D environment, distributed collaboration around a shared model, and immersive walkthrough for training and review. Genuinely achievable — but note that XR Viewer is beta and the committed VR route is a Maps SDK build. ArcGIS Earth Mobile's tabletop and world-scale AR is the low-cost immersive option that is available today.",p:["velocity","dashboards","xrviewer","gamesdk","vr360","earthmobile","stbds","workflow"]}
+];
+
+/* ═══════════════ USE CASES ═══════════════ */
+const USECASES=[
+{t:"Remote work preparation &amp; safer planning",q:"Prepare work remotely, assess scaffolding, insulation removal, crane access and confined spaces — and reduce trips into operational areas.",
+ need:"Navigable site-wide 3D plus ground-level 360° imagery, with measurement and slice tools. The 360° layer usually does more work here than the mesh: planners recognise what they are looking at immediately.",
+ p:["sceneviewer","exb","oiviewer","instant","pro","sceneservice","quickcapture"],
+ w:"Refresh cadence is the real design question. A 360° set six months stale is worse than none, because planners will trust it. Budget for re-capture as an operating cost, not a project cost."},
+{t:"Pipe replacement &amp; prefabrication",q:"Can reality capture provide sufficient accuracy to support pipe measurement, fabrication planning and installation?",
+ need:"Measurement-grade point clouds from terrestrial laser scanning with controlled registration, plus documented accuracy. Photogrammetry alone is generally not the answer for fabrication tolerances.",
+ p:["scanners","datainterop","pro","pro3d","allsource","sceneservice"],
+ w:"Be direct: accuracy is a survey question, not a software question. It depends on scanner class, registration control and ground control — not on ArcGIS. ArcGIS manages, serves and visualises the result and supports measurement, but Esri does not warrant fabrication tolerance. Get a survey specialist into the conversation early."},
+{t:"Inspection &amp; integrity management",q:"Visualise inspection findings, corrosion, defects and equipment condition in 3D, linked to enterprise asset information.",
+ need:"Field capture into feature services, spatial asset tags to attach findings to, and a link from feature to enterprise asset record. Knowledge graph handles the non-spatial half.",
+ p:["survey123","fieldmaps","egdb","knowledge","knowledgeserver","exb","dashboards","oiviewer"],
+ w:"Field Maps is 2D. Inspectors work in 2D or from 360° imagery and findings are reviewed in 3D afterwards. There is no documentation confirming 3D geometry types for knowledge graph entities — position the graph as correlated with 3D layers, not as holding them."},
+{t:"Pre-startup safety review (PSSR)",q:"Remote walkthroughs and verification before start-up — review completed work and identify issues.",
+ need:"Before/after capture comparison, a checklist workflow tied to locations, and multi-party review of the same scene. Change detection between capture campaigns is the technical heart of it.",
+ p:["sceneviewer","exb","instant","survey123","workflow","dashboards","drone2map"],
+ w:"This depends entirely on capture cadence around turnaround. If the site is only captured annually, PSSR support is limited to the 360° and mesh baseline. Rapid modes in Drone2Map and Reality Studio exist precisely for this kind of fast turnaround."},
+{t:"Maintenance planning &amp; execution",q:"Visualise work orders, isolations, permits, equipment history and documentation in the context of the physical asset.",
+ need:"Integration with the maintenance system of record, spatial asset tags as the join key, and an operational app surfacing status against the 3D environment.",
+ p:["egdb","gsdbapi","restapi","featureservice","exb","dashboards","workflow","geobim"],
+ w:"The join key is the hard part, not the visualisation. Asset tag reconciliation between the maintenance system and the spatial tag database is typically the largest single work package — this is exactly the problem the spatial asset tagging pattern exists to solve."},
+{t:"Operator familiarisation &amp; training",q:"An immersive environment for onboarding, training and procedure walkthroughs without access to the live plant.",
+ need:"Immersive delivery of existing 3D content, ideally with guided routes and annotation. Three routes at very different cost points.",
+ p:["vr360","earthmobile","xrviewer","gamesdk","sceneviewer","instant","earth"],
+ w:"Set expectations carefully — there are four routes at very different cost points. 360 VR and ArcGIS Earth Mobile's tabletop AR are available now, free, and limited. XR Viewer is the compelling demo and is beta with no GA date. Full custom VR via Unity or Unreal is a development project. Do not demo XR Viewer without saying it is beta."},
+{t:"Incident investigation &amp; collaboration",q:"Distributed teams reviewing plant conditions, collaborating around a shared visual model and reconstructing events.",
+ need:"Shared, versioned access to the scene with annotation and narrative capability, plus a time dimension across capture campaigns.",
+ p:["sceneviewer","exb","storymaps","instant","portal","knowledge","xrviewer"],
+ w:"Reconstruction quality is bounded by capture history. Without a pre-incident baseline there is nothing to compare against — which is itself a strong argument for routine capture cadence rather than event-driven capture."},
+{t:"Spatial asset tagging — the 3D system of record",q:"Not from the BP enquiry — carried over from the ExxonMobil GSDB solution review as an adjacent, reusable pattern.",
+ need:"A normalised, globally consistent record of where millions of physical assets are, in real-world coordinates, so other systems can reference and enrich them. Four feature classes in an enterprise geodatabase, served as feature layers, with an optional catalog API for external consumers.",
+ p:["egdb","pro","enterprise","featureservice","gsdbapi","exb","fieldmaps","jssdk"],
+ w:"Repeatable, cloud-agnostic and industry-aligned — refineries, factories, campuses. But the API layer is custom middleware and the mobile 3D story is unresolved. Position it as core ArcGIS with a defined custom extension, not as an off-the-shelf product."}
+];
+
+/* ═══════════════ KEY GAPS ═══════════════ */
+const GAPS=[
+{t:"3D in the field: viewing is solved, editing is not",sev:"high",area:"field",
+ ev:"The gap is narrower than it first appears, and it is worth stating precisely. <b>ArcGIS Field Maps is 2D only</b> — its documented data sources are web maps and mobile map packages; no web scenes, no oriented imagery, no 3D. But <b>ArcGIS Earth Mobile does view 3D on a tablet</b>: web scenes with slides, 3D object / integrated mesh / point cloud / 3D point scene layers, OGC 3D Tiles, sideloaded SLPK and MSPK, offline packages, 3D measurement, line of sight, viewshed, and tabletop and world-scale AR. So the real gap is not \"we cannot show 3D in the field.\" It is that <b>the app that views 3D cannot edit, and the app that edits cannot view 3D</b>. Earth Mobile has no documented feature service editing — its markup round-trips as KMZ, not as feature layers.",
+ today:"Split the field workflow by task. Earth Mobile for viewing, measuring and orientation against the 3D model, including offline and AR. Field Maps or Survey123 for anything that must write back to a feature service, in 2D or from 360° imagery. Two apps on one tablet is workable and honest, but it is not one experience. A single rich 3D field client means building on the ArcGIS Maps SDKs.",
+ close:"Either web scene support in Field Maps, or feature service editing in Earth Mobile — either one collapses the two-app workaround. Related in-flight work on visual and magnetic positioning needs to become a mainstream product conversation rather than a demo, since indoor and under-structure positioning is what makes any field 3D client actually usable in a plant."},
+
+{t:"No native STAC server in ArcGIS Enterprise for non-imagery asset catalogs",sev:"high",area:"api",
+ ev:"ArcGIS STAC support is real but imagery-shaped: ArcGIS Pro can create STAC connections, browse collections and pull items into a mosaic dataset. There is no ArcGIS Enterprise capability to <em>publish</em> a STAC API over non-imagery content — for example a catalog of 3D asset tag locations. A STAC API for image services and mosaic datasets may be explored, but a general asset catalog endpoint is not on a published roadmap.",
+ today:"Custom middleware. In the ExxonMobil GSDB pattern this is a purpose-built API that dynamically queries ArcGIS feature layers, converts responses into STAC items, and is hosted as a serverless function. Esri Geoportal Server was used to prototype it quickly but is not the recommended path forward — it is designed for other use cases. Every customer who wants this pays for it separately.",
+ close:"A first-class STAC publishing capability in ArcGIS Enterprise that is not tied to imagery. Multiple organisations are converging on STAC as a general catalog contract, so this should be assessed across development teams and not only from within the imagery expertise area. Until it exists, the catalog layer of a 3D system of record is custom every time."},
+
+{t:"OGC 3D Tiles: consumption is solid, authoring and capability are not",sev:"med",area:"serve",
+ ev:"ArcGIS reads 3D Tiles well and serves it from Enterprise and Online, but the constraints are material. 3D tiles layers are <b>not editable and cannot be used for geoprocessing</b>. Only three of the seven 3D layer types are available as 3D tiles — 3D object, mesh, and Gaussian splat; point cloud, building, 3D point and voxel remain I3S-only. In ArcGIS Pro 3.7 there is <b>no Create 3D Tiles geoprocessing tool</b> and no SLPK-to-3D-Tiles converter — only <em>Package 3D Tiles</em>, which bundles existing content into a .3tz. Reading 3D Tiles 1.1 is partial: .b3dm is supported, .i3dm, .pnts and implicit tiling are not. Scene Viewer visualises 3D tiles only for integrated mesh and Gaussian splat; 3D-object 3D tiles are Pro-only. Service publishing requires Enterprise 12.0 or later.",
+ today:"Author 3D Tiles upstream in ArcGIS Reality Studio, ArcGIS Reality for ArcGIS Pro or Drone2Map, which write .3tz directly. Use I3S for anything that must be editable, queried, analysed, or is a point cloud or building layer. In practice most industrial deployments will run I3S as the primary and 3D Tiles as the interchange format.",
+ close:"Parity on authoring — a real Create/Convert 3D Tiles path — plus clarity on which format Esri recommends for which job. Right now the honest answer to \"should I use I3S or 3D Tiles?\" is \"it depends, and here are eleven caveats,\" which is not a positioning that survives a customer architecture review."},
+
+{t:"Integrated mesh layers are visually rich and functionally inert",sev:"med",area:"serve",
+ ev:"Integrated mesh — the layer type that makes a refinery look like a refinery — supports no symbology change, no labelling, no querying, no pop-ups, no time, and no editing. Display-time modification via a polygon layer with Clip, Mask and Replace modifiers exists but <b>cannot share more than 2,000 modifications</b>, and only as part of a web scene. Production input for the Create Integrated Mesh Scene Layer Content tool is <b>OSGB only</b>.",
+ today:"Treat the mesh as backdrop and carry all interactivity on separate feature layers draped or positioned over it — which is exactly what the spatial asset tagging pattern does. Extract Multipatch From Mesh and Mesh To LAS exist where geometry needs to become analysable.",
+ close:"Broader input format support for mesh production, and a higher or removed modification cap. The 2,000-modification ceiling in particular will be hit by any site doing routine clip-and-replace as areas are re-captured."},
+
+{t:"Terrestrial scanner formats are not natively supported",sev:"high",area:"data",
+ ev:"ArcGIS Pro 3.7 reads .las, .zlas, .laz and generic ASCII lidar. <b>E57, RCP/RCS, PTS, PTX, PLY and FLS have no documented native point cloud support.</b> There is no general point cloud import tool. The only documented E57 handling anywhere in ArcGIS is the Indoors <em>Import Indoor Images</em> tool, which extracts 360° panoramas from an E57 — the imagery, not the point cloud.",
+ today:"ArcGIS Data Interoperability (FME 2026.1) or a vendor tool converts to LAS/LAZ before anything else happens. That is a separately licensed extension and an extra pipeline step, and it lands badly in a conversation with a customer whose entire capture programme is E57.",
+ close:"Native E57 read at minimum. This is the most tangible and most frequently requested item on this list, it may already sit on a roadmap, and it is the easiest to explain the value of."},
+
+{t:"No 3D editing web app",sev:"med",area:"serve",
+ ev:"ArcGIS Web Editor is a mature 2D editing story built around utility workflows. There is no dedicated 3D editing web application. Scene Viewer is the closest thing and is not configurable or extensible.",
+ today:"Editing 3D features means ArcGIS Pro, or a custom build on the ArcGIS Maps SDK for JavaScript. Experience Builder can host a scene but does not currently provide the editing depth.",
+ close:"Either meaningful 3D editing support in Experience Builder, or an explicit Maps SDK reference implementation. No customer has demanded deep 3D web editing yet — ExxonMobil has not — but it is the obvious next ask once asset tags exist and someone in the field wants to correct one."},
+
+{t:"Knowledge graph to 3D linkage is undocumented",sev:"med",area:"data",
+ ev:"ArcGIS Knowledge is the right answer for the non-spatial half of an asset — contracts, material lifespan, documents, maintenance history. Knowledge graph layers can be added to ArcGIS Pro global and local scenes. But there is no documentation confirming 3D geometry types (multipatch, mesh, z-enabled) for graph entities, or I3S scene layers participating as graph entities. Knowledge is also Enterprise-only and unavailable on Kubernetes.",
+ today:"Position the graph as <em>correlated with</em> separately published 3D layers, joined on the asset tag — not as holding the 3D geometry. That is a defensible architecture and it is what should be drawn on the whiteboard.",
+ close:"Documented support for 3D entity geometry, or clear guidance that the correlation pattern is the intended design. Right now the risk is an SE promising something in a meeting that the product does not do."},
+
+{t:"No 3D or digital twin pattern in the ArcGIS Architecture Center",sev:"watch",area:"story",
+ ev:"There are eight published ArcGIS system patterns and two reference architectures — Land Information Management and Network Information Management. <b>None covers 3D, facilities, plants or digital twin.</b> The closest touchpoint is the imagery data management pattern, which mentions lidar and oriented imagery in 2D and 3D contexts. Digital twin appears in the library only as a linked case study.",
+ today:"Compose an architecture from the imagery, data editing and management, enterprise application hosting, mobile operations and real-time patterns — which is legitimate, since the Architecture Center explicitly says patterns may be combined and do not represent all system types. But there is nothing to hand a customer.",
+ close:"A 3D system-of-record or industrial digital twin reference architecture. This page is arguably a draft of exactly that. It would also serve the broader digital twin strategy and adjacent work such as the AWS SDMA collaboration."},
+
+{t:"Cross-product 3D messaging is incoherent",sev:"watch",area:"story",
+ ev:"The capabilities exist. Explaining them does not. The relevant surface spans geodatabase, ArcGIS Pro, ArcGIS Enterprise, portal, web apps, mobile apps and developer technology, and basic questions have no easily findable answers: is a \"3D box\" a multipatch feature or a 3D object? If it is in the geodatabase, how do I publish it so there is one copy that is viewable and editable at the same time? What if I want to import 3D geometry from WKT rather than editing it in Pro? Documentation combines terms — \"create multipatch or 3D features\" — without resolving which is which.",
+ today:"Individual SMEs answer these case by case. Customers experience a messaging gap as a capability gap, which is worse than the underlying reality.",
+ close:"Dedicated time from product team members who understand the whole 3D ecosystem, and a coherent cross-product 3D system-of-record narrative. A knowledge-sharing workshop between cross-product 3D leadership and a customer like ExxonMobil would be an efficient forcing function."},
+
+{t:"Reality Server is beta and it is the architecturally right answer",sev:"watch",area:"serve",
+ ev:"ArcGIS Reality Server, introduced as a server role at Enterprise 12.0, is still beta at 12.1 — Early Adopter Community, not covered by Esri Technical Support, no GA announcement located. It is the correct architecture for plant-scale reality mapping: distributed, server-side, removes the workstation bottleneck, driven from Pro or the REST API, and Esri explicitly frames it as feeding digital twin initiatives.",
+ today:"Reality Studio, Reality for ArcGIS Pro or Site Scan cloud processing for anything committed. Reality Server can be shown as roadmap, clearly labelled.",
+ close:"GA. Until then there is a visible gap between the architecture we would draw and the architecture we can contract for."},
+
+{t:"Immersive delivery has no supported no-code path",sev:"watch",area:"story",
+ ev:"XR Viewer is the compelling answer to operator training and immersive review — no-code VR over existing web scenes, shared avatars, presentation mode, desktop mode for participants without headsets. It is <b>beta via the Early Adopter Program with no announced GA date</b>. 360 VR is generally available but limited to panoramic viewing. The only supported committed route is a build on the ArcGIS Maps SDKs for Unity or Unreal.",
+ today:"Be explicit in demos about which of the three is being shown. Do not demonstrate XR Viewer without saying it is beta — the gap between the demo and what can be bought is the largest on this list.",
+ close:"XR Viewer GA. Operator familiarisation and training was one of seven named use cases in the BP enquiry, and it is the one where the demo-to-deliverable distance is greatest."},
+
+{t:"Oriented Imagery Classic migration is a live burden",sev:"med",area:"data",
+ ev:"The entire Classic stack is deprecated: the OIC data model and item type, the Pro add-in, the Classic Management Tools, the Classic Experience Builder widget, the Oriented Imagery Explorer web app and the Classic API. The Classic widget was removed from ArcGIS Online in February 2026 and will be removed from ArcGIS Enterprise at 12.1. Maps SDK for JavaScript 5.0 no longer visualises OICs. An Esri web app to convert published OICs to the new oriented imagery layers was promised — it could not be confirmed as shipped.",
+ today:"Author all new work against the current oriented imagery dataset and oriented imagery layer model. Any customer with existing OIC content needs a migration plan, and right now that plan may be manual.",
+ close:"Confirmed availability of the OIC conversion tooling, and a stated final retirement date for Classic overall rather than a scatter of per-component dates."},
+
+{t:"Kubernetes is not a viable target for a full digital twin",sev:"med",area:"serve",
+ ev:"All seven 3D layer types work on ArcGIS Enterprise 12.1 on Kubernetes, and the object store backs caches on S3, Blob or GCS. But there is <b>no Velocity Server, no GeoEvent, no Knowledge Server, no Data Pipelines Server, and no Data Interoperability</b> — which removes real-time, the knowledge graph, and the format conversion path in one go. There is also no long-term-support release on Kubernetes.",
+ today:"Recommend Windows or Linux for industrial digital twin deployments. Kubernetes is credible for the 3D serving tier alone if the customer has a strong container mandate, but it cannot carry the operational twin.",
+ close:"Parity on Velocity and Knowledge at minimum. Consult the ArcGIS Enterprise Functionality Matrix as the authoritative source before making any specific claim."},
+
+{t:"Heavy-industry 3D reference set is thin",sev:"watch",area:"story",
+ ev:"OMV is a genuine downstream reference — featured on Esri's downstream industry page for turnaround planning, with a video on building a 3D refinery model explicitly framed against long-term digital twin aspirations. But it is <b>conference video and an industry-page feature, not a written case study</b>, and it appears to date from around 2021. The digital twin flagships Esri leads with — Vodafone, Cisco, Cross River Rail, Raleigh Water — are credible but none is a refinery or petrochemical plant.",
+ today:"Use OMV, but verify currency before quoting it. Supplement with the ExxonMobil decommissioning and BP emergency response items on the petroleum pages, and be candid that the heavy-industry 3D reference set is thinner than the utility and urban sets.",
+ close:"A current, written industrial 3D digital twin case study. The absence of one is itself a reason to invest in making the next engagement referenceable."}
+];
+
+/* ═══════════════ 3D LAYER TYPES ═══════════════ */
+const L3D=[
+["3D object","Y","Y","Y","Y","Y","The workhorse for discrete built assets. Editable when backed by a scene service with an associated feature layer. Available as both I3S and 3D tiles."],
+["3D point","Y","-","Y","Y","-","Display name is <em>3D point</em>; the REST keyword is still <code>Point</code> and ArcGIS Pro still calls it a point scene layer. Editable with an associated feature layer."],
+["Building","Y","-","P","Y","-","Supports an associated feature layer, but Esri's prose names only 3D object and 3D point as editable — treat editability as unconfirmed. <b>Not supported in ArcGIS Earth.</b>"],
+["Mesh","Y","Y","-","Y","Y","Renamed from <em>integrated mesh</em>; REST keyword is still <code>IntegratedMesh</code>. The refinery backdrop layer. No symbology, labels, pop-ups, query or editing — all interactivity rides on separate feature layers."],
+["Point cloud","Y","-","-","Y","-","I3S only. Never editable. The published form of laser scanning and LiDAR."],
+["Voxel","Y","-","-","Y","-","I3S only. Volumetric scientific data — rarely relevant to plant work."],
+["Gaussian splat","-","Y","-","-","Y","New, and 3D tiles only. Esri's 12.1 documentation contradicts itself on Enterprise support — the layer table and REST docs say yes, two other pages omit it. Cite the REST page and What's New if you need to make the claim."]
+];
+
+/* ═══════════════ ITEM TYPES ═══════════════ */
+const ITEMCATS={l3d:"3D layers &amp; packages",maps:"Maps &amp; scenes",layers:"Feature &amp; imagery layers",
+  know:"Knowledge",offline:"Offline packages",infra:"Infrastructure"};
+const ITEMS=[
+/* ---- 3D ---- */
+{cat:"l3d",n:"Scene Layer",rest:"Scene Service",sup:"both",
+ w:"A cached web layer streaming Esri <b>I3S</b> content. This is the item behind six of the seven 3D layer types. The item type name is the same whether the cache is hosted or referenced — the difference is carried by a <code>Hosted Service</code> keyword, not by a different item.",
+ by:"Publishing an .slpk; sharing from ArcGIS Pro; publishing from a hosted feature layer (3D object and 3D point only); or publishing from a referenced cache in a data store (Enterprise only).",
+ lim:"Needs the publish-hosted-scene-layers privilege. Note the privilege is labelled <em>3D layers</em> in Online and <em>scene layers</em> in Enterprise — the same right, different wording."},
+{cat:"l3d",n:"3D Tiles Layer",rest:"3DTilesService",sup:"both",
+ w:"The <b>OGC 3D Tiles</b> equivalent of a scene layer — a <code>tileset.json</code> plus tile folders rather than I3S. Not interchangeable with a scene layer: different spec, different supported layer types, different publishing privilege (tile layer, not scene layer).",
+ by:"Uploading a .3tz package, publishing from a 3D tiles dataset in a data store, or sharing a Gaussian splat from ArcGIS Pro 3.6+.",
+ lim:"<b>Cannot be edited or used for geoprocessing</b> — documented, absolute, no associated feature layer ever. Mesh and 3D object support arrived at Enterprise 11.4, Gaussian splat at 12.1."},
+{cat:"l3d",n:"Scene layer package (.slpk)",rest:"Scene Package",sup:"both",
+ w:"A compressed cache file containing an I3S dataset. The portable form of a 3D layer — the thing you hand someone, or upload to publish.",
+ by:"ArcGIS Pro (the Create … Scene Layer Content tools, or Share As), ArcGIS Drone2Map, ArcGIS CityEngine.",
+ lim:"Publishing from an uploaded package <b>copies</b> the cache. Enterprise needs twice the package size free in <em>both</em> the portal content store and the hosting server cache directory. This is the main reason large 3D content goes the referenced route instead."},
+{cat:"l3d",n:"3D tiles package (.3tz)",rest:"3DTilesPackage",sup:"both",
+ w:"A compressed cache file containing an OGC 3D Tiles dataset — the 3D tiles counterpart to an .slpk.",
+ by:"ArcGIS Pro's <em>Package 3D Tiles</em> tool, ArcGIS Reality Studio, ArcGIS Drone2Map.",
+ lim:"Note there is no <em>Create</em> 3D Tiles tool in ArcGIS Pro 3.7 — only <em>Package</em>, which bundles content that already exists. Authoring happens upstream in the reality mapping products."},
+{cat:"l3d",n:"Extracted scene layer package (.eslpk)",rest:"— not an item type",sup:"none",
+ w:"An .slpk unpacked into a directory so a service can read it in place without copying. It is a <b>file inside a registered data store</b>, never an uploaded item — which is exactly the point.",
+ by:"ArcGIS Pro: the Create 3D Object / Point / Point Cloud Scene Layer Package tools, or Extract Package.",
+ lim:"<b>Enterprise only</b>, and specifically for <em>file share</em> data stores. For <em>cloud storage</em> data stores the equivalent is i3sREST content, generated with i3sconverter. Easy distinction to miss: .eslpk &rarr; file share, i3sREST &rarr; cloud storage."},
+{cat:"l3d",n:"i3sREST content",rest:"— not an item type",sup:"none",
+ w:"Ready-to-serve I3S content laid out in cloud object storage and referenced by a 3D layer. Esri's recommended form for scene layer content above roughly 200&nbsp;GB.",
+ by:"i3sconverter, or ArcGIS Pro tools writing to the .i3sREST output option.",
+ lim:"<b>Enterprise only.</b> Lives in a cloud storage data store on {{blobfull}}. Performance depends on the network path between client and storage — co-locate them."},
+/* ---- maps & scenes ---- */
+{cat:"maps",n:"Web Scene",rest:"Web Scene",sup:"both",
+ w:"A JSON document describing a 3D scene: its <b>layers</b> with styling, a <b>basemap</b>, and a <b>ground</b> (the elevation surface). Authored as either a global or a local scene. Slides — saved viewpoints — are stored in the item.",
+ by:"Scene Viewer, or ArcGIS Pro via Share As Web Scene.",
+ lim:"3D layers can only be consumed in a web scene, never a web map. No published parity table exists between Enterprise and Online — the practical differences come from Scene Viewer release cadence and which layer types each supports."},
+{cat:"maps",n:"Web Map",rest:"Web Map",sup:"both",
+ w:"The 2D equivalent — basemap, operational layers, extent, pop-up configuration and bookmarks.",
+ by:"Map Viewer, ArcGIS Pro, or the API.",
+ lim:"Cannot contain 3D layers. Relevant here because Field Maps consumes web maps and not web scenes, which is the root of the 3D-in-the-field gap."},
+/* ---- feature & imagery ---- */
+{cat:"layers",n:"Feature Layer",rest:"Feature Service",sup:"both",
+ w:"Vector features and attributes, queryable and usually editable. The backbone of the spatial asset tagging pattern, and the thing that carries interactivity over an inert mesh.",
+ by:"Publishing from ArcGIS Pro, uploading a file, or bulk publishing from a database data store item in Enterprise.",
+ lim:"Contains sublayers of type point, line, polygon, catalog, <b>oriented imagery</b> and parcel — which is where oriented imagery actually lives."},
+{cat:"layers",n:"Oriented imagery",rest:"— not an item type",sup:"none",
+ w:"<b>There is no oriented imagery layer item type.</b> Oriented imagery is a <em>sublayer</em> of a feature layer. When published, the oriented imagery layer is added to an ordinary <b>Feature Layer</b> item, and adding it to a map brings in the imagery and its coverage footprint together as a group layer.",
+ by:"ArcGIS Pro's Oriented Imagery Tools — Generate Service From Oriented Imagery Dataset.",
+ lim:"Do not confuse with <code>Oriented Imagery Catalog</code>, which <em>is</em> a real item type but belongs to the deprecated Classic model. New work should produce feature layer items."},
+{cat:"layers",n:"Imagery Layer",rest:"Image Service",sup:"both",
+ w:"Raster and imagery served dynamically or from a cache, with on-the-fly raster function processing. The portal display name and the REST type genuinely differ here.",
+ by:"Publishing from ArcGIS Pro, or creating from a folder or cloud storage data store in Enterprise.",
+ lim:"In Enterprise this requires <b>ArcGIS Image Server</b> — it is not in a base deployment. To publish in-portal from a data store, that store must be registered with the raster analysis or image hosting server."},
+{cat:"layers",n:"Elevation Layer",rest:"Image Service",sup:"both",
+ w:"<b>Not a separate item type.</b> An elevation layer is an Image Service item carrying the <code>Elevation 3D Layer</code> keyword — a cached image service in LERC format, used as the ground surface in a scene.",
+ by:"Publishing a cached image service in LERC tile format from a raster or mosaic dataset.",
+ lim:"Must be LERC-cached. A dynamic image service will not work as an elevation source. This is the layer that quietly improves every 3D scene you build."},
+{cat:"layers",n:"Map Image Layer",rest:"Map Service",sup:"both",
+ w:"Server-rendered map content with feature query support, dynamic or cached.",by:"Publishing a map from ArcGIS Pro.",lim:"2D. Included for completeness."},
+{cat:"layers",n:"Tile Layer / Vector Tile Layer",rest:"Vector Tile Service",sup:"both",
+ w:"Pre-rendered raster tiles, or vector tiles styled on the client. Enterprise 12.1 splits &ldquo;tile layer&rdquo; into raster tile and vector tile variants.",
+ by:"Publishing from ArcGIS Pro, or uploading a .tpk / .tpkx / .vtpk.",lim:"2D basemap and context duty."},
+/* ---- knowledge ---- */
+{cat:"know",n:"Knowledge Graph",rest:"Knowledge Graph",sup:"ent",
+ w:"An entity-and-relationship graph for the largely non-spatial content around an asset — contracts, documents, material lifespan, maintenance history — linked to features.",
+ by:"ArcGIS Knowledge, running on a federated ArcGIS Knowledge Server.",
+ lim:"<b>ArcGIS Enterprise only.</b> Requires a Knowledge Server on its own federated site plus a graph store, and one NoSQL data store per graph if using Neo4j or ArangoDB. Not available on Kubernetes."},
+{cat:"know",n:"Knowledge graph layer",rest:"— not an item type",sup:"none",
+ w:"A composite <em>map and scene</em> construct, not a portal item. Contains knowledge graph feature sublayers (the spatial entity types) and knowledge graph table sublayers (the non-spatial ones).",
+ by:"Adding a knowledge graph to a map or scene in ArcGIS Pro.",
+ lim:"No documentation confirms 3D geometry types for graph entities, or I3S layers participating as entities. Position the graph as correlated with 3D layers via the asset tag, not as holding the geometry."},
+{cat:"know",n:"Knowledge Graph Investigation / Knowledge Studio Project",rest:"Knowledge Graph Investigation",sup:"ent",
+ w:"Saved investigative work over a knowledge graph — maps, link charts, saved queries, lists and custom symbology.",
+ by:"ArcGIS Knowledge Studio.",lim:"Documented as <b>only supported by ArcGIS Enterprise deployments</b>."},
+/* ---- offline ---- */
+{cat:"offline",n:"Mobile Scene Package (.mspk)",rest:"Mobile Scene Package",sup:"both",
+ w:"A self-contained 3D scene for offline use on a device — layers, cache and elevation in one file.",
+ by:"ArcGIS Pro.",
+ lim:"A container, not a service: it must be downloaded, not streamed. For ArcGIS Earth Mobile the tiling scheme must be Web Mercator Auxiliary Sphere or it will not load, and only one global scene at a time is supported."},
+{cat:"offline",n:"Mobile Map Package (.mmpk)",rest:"Mobile Map Package",sup:"both",
+ w:"The 2D equivalent, optionally including locators and a transportation network for offline routing.",
+ by:"ArcGIS Pro.",lim:"Consumed by Field Maps and Maps SDK apps. Download-only."},
+{cat:"offline",n:"Tile Package (.tpk / .tpkx) &amp; Vector Tile Package (.vtpk)",rest:"Tile Package / Compact Tile Package / Vector Tile Package",sup:"both",
+ w:"Archived map caches for offline basemap use. Note .tpk and .tpkx are two distinct REST types shown under one label in the portal.",
+ by:"ArcGIS Pro.",lim:"Basemap and context only."},
+/* ---- infrastructure ---- */
+{cat:"infra",n:"Data store item (Enterprise)",rest:"Data Store",sup:"ent",
+ w:"Registers a <b>folder</b>, <b>database</b> or <b>cloud storage</b> location with one or more federated servers so layers can reference data in place instead of copying it. Cloud storage covers {{blobfull}}, ADLS Gen2, Google Cloud and Alibaba OSS.",
+ by:"Portal &rarr; Content &rarr; New item &rarr; Data store, or from ArcGIS Pro (cloud storage requires Pro 3.0+).",
+ lim:"<b>Enterprise only, and the single most important item for industrial 3D</b> — it is what makes referenced-cache publishing possible. If registered with several federated servers, admins must use the <code>federateDataItem</code> operation or risk duplicate registrations."},
+{cat:"infra",n:"Data store (ArcGIS Online)",rest:"Data Store",sup:"online",
+ w:"An entirely different thing that shares the name: a connection to cloud storage or a cloud data warehouse used as a source for <b>ArcGIS Data Pipelines</b>.",
+ by:"Portal, or the Data Pipelines editor.",
+ lim:"<b>Nothing to do with 3D caches.</b> Do not describe this as the referenced-publishing mechanism — ArcGIS Online has no such mechanism."}
+];
+
+/* ═══════════════ DEPLOYMENT MATRIX ═══════════════ */
+const DEPLOY=[
+["ArcGIS Pro (+ 3D Analyst, Reality, Deep Learning)","Y","-","-","-","-","Authoring, classification, scene layer content generation. Reality Mapping needs Professional or Professional Plus.","3d"],
+["ArcGIS Reality Studio","Y","-","-","-","-","Standalone desktop, separately licensed. Site to country scale.","3d"],
+["ArcGIS Drone2Map","Y","-","-","-","-","Standalone desktop, offline capable. Creator user type and above.","3d"],
+["Site Scan for ArcGIS","-","-","-","-","Y","Cloud SaaS. Publishes to Online or Enterprise. Cloud Gaussian splats since Q2 2026.","3d"],
+["ArcGIS Reality Server","-","B","-","-","-","Beta at 12.1. Server-side distributed reality mapping. Not supported by Technical Support.","3d ent"],
+["Deep Learning Studio","-","Y","-","-","-","Requires ArcGIS Image Server configured for raster analytics. Not available in ArcGIS Online.","ent"],
+["ArcGIS Image Server","-","Y","Y","-","-","Dynamic image services and raster analytics. Enterprise licensing role.","ent"],
+["Enterprise geodatabase","Y","Y","-","-","-","System of record for asset tags. Not an ArcGIS Online concept.","ent 3d"],
+["Object store (3D caches)","-","Y","Y","-","-","Required base component at 12.x. Replaced the removed tile cache data store.","ent 3d"],
+["Referenced cache (.eslpk / i3sREST)","-","Y","Y","-","-","Recommended above ~200 GB. No ArcGIS Online equivalent — often the deciding factor.","ent 3d"],
+["Scene services (I3S)","-","Y","Y","Y","-","Six of seven 3D layer types. 3D object and 3D point editable via associated feature layer.","both 3d"],
+["3D tiles services (OGC)","-","Y","Y","Y","-","3D object, mesh and Gaussian splat. Not editable, no geoprocessing. Publishing needs 12.0+.","both 3d"],
+["Feature services","-","Y","Y","Y","-","Asset tags, inspection records, oriented imagery layers.","both"],
+["Oriented imagery","Y","Y","Y","Y","-","A feature service, not an image service. No Image Server licence required. Viewer in Map Viewer 11.2+.","both 3d"],
+["ArcGIS Knowledge / Knowledge Server","Y","Y","-","-","-","Enterprise only. Needs a second federated site plus a graph store. Not on Kubernetes.","ent"],
+["ArcGIS Velocity","-","Y","-","Y","-","Velocity Server for Enterprise (Win/Linux) added at 12.1. A standalone federated component, not an ArcGIS Server licensing role. Big data analytics remains Online only. Not on Kubernetes.","both"],
+["ArcGIS GeoEvent Server","-","D","-","-","-","Deprecated. Final release 12.3, removed 12.4. Migrate to Velocity.","ent"],
+["ArcGIS Data Pipelines","-","Y","-","Y","-","GA in Enterprise at 12.1, included with Enterprise Advanced. No credits in Enterprise. Not on Kubernetes.","both"],
+["ArcGIS Data Interoperability","Y","Y","-","-","-","FME 2026.1 at Enterprise 12.1. Separately licensed. Not on Kubernetes. The answer for E57 and RCP.","ent"],
+["ArcGIS Notebooks","Y","Y","Y","Y","-","Automation, scheduled processing, bulk publishing.","both"],
+["Scene Viewer","-","Y","Y","Y","-","Measure volume beta and Gaussian splat analysis added June 2026. Oriented imagery Location tool is ArcGIS Online only.","both 3d"],
+["ArcGIS Experience Builder","-","Y","Y","Y","-","Recommended app builder. 3D Toolbox and Oriented Imagery Viewer widgets. Web AppBuilder is retiring.","both 3d"],
+["ArcGIS Instant Apps","-","Y","Y","Y","-","3D Viewer, Observer, Atlas, Compare and Exhibit accept web scenes.","both 3d"],
+["ArcGIS Dashboards","-","Y","Y","Y","-","Map element accepts web scenes. Only 3D object and 3D point layers can drive other elements.","both"],
+["ArcGIS GeoBIM","-","Y","-","Y","-","Included with Online and Enterprise 11.4+. Autodesk Forma subscription needed to create projects. Not on Kubernetes.","both"],
+["ArcGIS Indoors (Pro / Maps / Spaces)","Y","Y","-","Y","Y","Three licensing tiers. Indoors Maps includes unlimited Indoors User user types.","both"],
+["ArcGIS Field Maps / Survey123 / QuickCapture","-","Y","Y","Y","Y","Field capture against Enterprise or Online. Field Maps is 2D only.","both"],
+["ArcGIS Earth (desktop)","Y","Y","Y","Y","-","Free with every user type. Views scene layers and 3D Tiles, edits feature services, full KML. Air-gap config and silent MSI with a locked config.","3d"],
+["ArcGIS Earth Mobile","-","Y","Y","Y","Y","Free iOS/Android 3D viewer. Scene layers, 3D Tiles, offline packages, tabletop and world-scale AR. No feature editing.","3d"],
+["XR Viewer","-","-","-","-","B","Beta, Early Adopter Program. Meta Quest 3/3S plus supported PC. Reads scenes from Online or Enterprise.","3d"],
+["Maps SDKs for Game Engines","-","-","-","-","Y","Unity and Unreal 2.4.0 (Aug 2026). A build effort, not a configurable app.","3d"],
+["Maps SDK for JavaScript","-","Y","Y","Y","Y","SceneView for 3D. v5.0 dropped Oriented Imagery Classic. The route for custom 3D web editing.","both 3d"],
+["OGC services (WMS, WMTS, WFS, OGC API–Features)","-","Y","Y","-","-","Publishable from Enterprise only. OGC API–Tiles and –Maps are not publishable at 12.1.","ent"]
+];
+
+/* ═══════════════════════ RENDER ═══════════════════════ */
+const $=(s,r)=>(r||document).querySelector(s), $$=(s,r)=>[...(r||document).querySelectorAll(s)];
+/* A product is visible unless it is pinned to a cloud we are not currently showing. */
+function visible(id){const p=CATALOG[id];return !p.cloud||p.cloud===CLOUDKEY;}
+
+function chip(id,extraClass,stage){
+  const p=CATALOG[id]; if(!p||!visible(id)) return "";
+  const note=p.note?`<sup style="color:var(--calcite-color-brand);font-weight:600">[${p.note}]</sup>`:"";
+  const multi=stage&&STAGES_OF[id]&&STAGES_OF[id].size>1
+    ? `<span class="multi" title="This product also appears in other stages">${STAGES_OF[id].size}&times;</span>`:"";
+  const cloudTag=p.cloud?`<span class="cloudtag">${p.cloud.toUpperCase()}</span>`:"";
+  return `<button class="chip ${extraClass||""}" data-id="${id}"${stage?` data-stage="${stage}"`:""} data-status="${p.status==='ga'?'':p.status}" data-tier="${p.tier}" data-deploy="${p.deploy.join(' ')}" data-is3d="${p.is3d?1:0}">
+    <span class="dot"></span><span class="lbl">${p.n}${note}</span>${cloudTag}${multi}</button>`;
+}
+function groupedChips(ids,stage){
+  let out="",last=null;
+  ids.filter(visible).forEach(id=>{const p=CATALOG[id]; if(!p)return;
+    if(p.g!==last){out+=`<div class="grouplabel">${p.g}</div>`;last=p.g;}
+    out+=chip(id,"",stage);});
+  return out;
+}
+function idsByTier(t){return Object.keys(CATALOG).filter(k=>CATALOG[k].tier===t).sort((a,b)=>CATALOG[a].g.localeCompare(CATALOG[b].g));}
+
+/* A product's "home" tier positions it in the system view, but many products do real
+   work in more than one pipeline stage — ArcGIS Velocity ingests, processes, stores and
+   serves; ArcGIS Pro produces and consumes; Field Maps captures and consumes. Build the
+   pipeline board from the union of home tiers and every stage any flow places them in. */
+const STAGES_OF={};
+Object.keys(CATALOG).forEach(id=>STAGES_OF[id]=new Set([CATALOG[id].tier]));
+Object.values(FLOWS).forEach(f=>Object.entries(f.p).forEach(([st,arr])=>arr.forEach(id=>{
+  if(CATALOG[id]) STAGES_OF[id].add(st);})));
+function idsInStage(st){
+  return Object.keys(CATALOG).filter(id=>STAGES_OF[id].has(st))
+    .sort((a,b)=>CATALOG[a].g.localeCompare(CATALOG[b].g)||CATALOG[a].n.localeCompare(CATALOG[b].n));
+}
+
+/* ── System view ── */
+function buildSystem(){
+  $("#rail-body").innerHTML = [...idsByTier("capture"),...idsByTier("produce")].filter(visible).reduce((acc,id)=>{
+    const p=CATALOG[id];
+    if(acc.last!==p.g){acc.h+=`<div class="rgroup">${p.g}</div>`;acc.last=p.g;}
+    acc.h+=chip(id);return acc;},{h:"",last:null}).h;
+  $("#tier1").innerHTML=groupedChips(idsByTier("manage"));
+  $("#tier2").innerHTML=groupedChips(idsByTier("serve"));
+  $("#tier3").innerHTML=groupedChips(idsByTier("consume"));
+}
+let sysFilter="all";
+function applySysFilter(){
+  $$("#view-system .chip").forEach(c=>{
+    let on=true;
+    if(sysFilter==="3d") on=c.dataset.is3d==="1";
+    else if(sysFilter!=="all") on=c.dataset.deploy.split(" ").includes(sysFilter);
+    c.classList.toggle("off",!on);
+  });
+}
+
+/* ── Flow view ── */
+const STAGES=[["capture","Capture"],["produce","Process &amp; produce"],["manage","Store &amp; catalog"],["serve","Serve"],["consume","Consume"]];
+function buildPipe(){
+  $("#pipe-board").innerHTML=STAGES.map(([k,label],i)=>
+    `<div class="col"><h4><span>${label}</span><span class="n">${i+1}</span></h4>
+     <div class="cbody">${groupedChips(idsInStage(k),k)}</div></div>`).join("");
+  $("#flow-buttons").innerHTML=Object.keys(FLOWS).map(k=>
+    `<button class="btn${activeFlows.has(k)?" active":""}" data-flow="${k}">${FLOWS[k].n}</button>`).join("");
+}
+
+let activeFlows=new Set();
+function renderFlows(){
+  const nar=$("#flow-narratives");
+  if(!activeFlows.size){
+    $$("#pipe-board .chip").forEach(c=>c.classList.remove("off","on"));
+    nar.innerHTML=`<div class="narr"><h3>All data types</h3><p>Select one or more data types above to trace how that content moves through the system. Products not involved in the selected flow dim out.</p><p style="margin-bottom:0"><b>Products appear in every stage where they do real work</b>, not just one. ArcGIS Velocity ingests, processes, stores and serves; ArcGIS Pro produces content and is also a consumption client; Field Maps captures in the field and consumes back in it. A <span class="multi" style="position:static;display:inline-block">2&times;</span> badge marks a product that spans multiple stages.</p></div>`;
+    return;
+  }
+  /* highlight per stage-and-product, so a product lights up only in the stages
+     where it actually participates in the selected flow */
+  const inFlow=new Set();
+  activeFlows.forEach(f=>Object.entries(FLOWS[f].p).forEach(([st,arr])=>arr.forEach(id=>inFlow.add(st+"|"+id))));
+  $$("#pipe-board .chip").forEach(c=>{
+    const on=inFlow.has(c.dataset.stage+"|"+c.dataset.id);
+    c.classList.toggle("off",!on);c.classList.toggle("on",on);
+  });
+  const SEC=[["collect","1 &middot; Collection","How it is captured, and with what — Esri and non-Esri"],
+             ["process","2 &middot; Processing","What has to happen before it is usable"],
+             ["store","4 &middot; Storage","Where it lives, in ArcGIS and in the cloud"],
+             ["consume","5 &middot; Consumption","Who sees it, and in what"]];
+  nar.innerHTML=[...activeFlows].map(k=>{const f=FLOWS[k],n=f.nar||{};
+    const fmt=n.formats?`<div class="nsec fmtsec"><h4>3 &middot; Format transitions</h4>
+        <div class="fmtchain">${n.formats.map((x,i)=>`${i?'<i>&rarr;</i>':''}<span>${x}</span>`).join("")}</div></div>`:"";
+    return `<div class="narr" style="border-inline-start-color:${f.c}">
+      <h3 style="color:${f.c}">${f.n}</h3><p class="lede">${tok(f.desc)}</p>
+      <div class="steps">${f.steps.map((s,i)=>`${i?'<i>&rarr;</i>':''}<span>${s}</span>`).join("")}</div>
+      <div class="nargrid">
+        ${SEC.slice(0,2).map(([key,label,hint])=>n[key]?`<div class="nsec"><h4>${label}</h4><p>${tok(n[key])}</p></div>`:"").join("")}
+      </div>
+      ${fmt}
+      <div class="nargrid">
+        ${SEC.slice(2).map(([key,label,hint])=>n[key]?`<div class="nsec"><h4>${label}</h4><p>${tok(n[key])}</p></div>`:"").join("")}
+      </div>
+      ${f.caveat?`<div class="caveat"><b>Watch:</b> ${tok(f.caveat)}</div>`:""}</div>`;}).join("");
+}
+
+/* ── Deployment table ── */
+function buildDeploy(){
+  const m=v=>v==="Y"?'<span class="yes">&#10003;</span>':v==="B"?'<span class="partial">beta</span>':v==="D"?'<span class="no" style="color:#D83020">dep.</span>':'<span class="no">&mdash;</span>';
+  $("#deploy-table tbody").innerHTML=DEPLOY.map(r=>
+    `<tr data-tags="${r[7]}"><td class="tname">${r[0]}</td>
+     <td class="mark">${m(r[1])}</td><td class="mark">${m(r[2])}</td><td class="mark">${m(r[3])}</td>
+     <td class="mark">${m(r[4])}</td><td class="mark">${m(r[5])}</td>
+     <td style="color:var(--calcite-color-text-2)">${tok(r[6])}</td></tr>`).join("");
+}
+let depFilter="all";
+function applyDepFilter(){
+  $$("#deploy-table tbody tr").forEach(tr=>{
+    tr.style.display=(depFilter==="all"||tr.dataset.tags.split(" ").includes(depFilter))?"":"none";});
+}
+
+/* ── Item types ── */
+function buildItems(){
+  const m=v=>v==="Y"?'<span class="yes">&#10003;</span>':v==="P"?'<span class="partial">?</span>':'<span class="no">&mdash;</span>';
+  $("#l3d-table tbody").innerHTML=L3D.map(r=>
+    `<tr><td class="tname">${r[0]}</td>
+      <td class="mark">${m(r[1])}</td><td class="mark">${m(r[2])}</td><td class="mark">${m(r[3])}</td>
+      <td class="mark">${m(r[4])}</td><td class="mark">${m(r[5])}</td>
+      <td style="color:var(--calcite-color-text-2)">${r[6]}</td></tr>`).join("");
+  $("#itemcat-buttons").innerHTML=Object.entries(ITEMCATS).map(([k,v])=>
+    `<button class="btn" data-itemcat="${k}">${v}</button>`).join("");
+  const SUP={both:["Enterprise + Online","sup-both"],ent:["Enterprise only","sup-ent"],
+             online:["ArcGIS Online only","sup-online"],none:["Not an item type","sup-none"]};
+  let out="",lastCat=null;
+  ITEMS.forEach(it=>{
+    if(it.cat!==lastCat){out+=`<h3 class="itemcat" data-cat="${it.cat}">${ITEMCATS[it.cat]}</h3>`;lastCat=it.cat;}
+    const [lbl,cls]=SUP[it.sup];
+    out+=`<div class="itemcard" data-cat="${it.cat}" data-sup="${it.sup}">
+      <div class="ihead">
+        <div class="iname">${it.n}<span class="irest">${it.rest}</span></div>
+        <span class="isup ${cls}">${lbl}</span>
+      </div>
+      <div class="icols">
+        <div><h4>What it is</h4><p>${tok(it.w)}</p></div>
+        <div><h4>Created by</h4><p>${tok(it.by)}</p></div>
+        <div><h4>Watch for</h4><p>${tok(it.lim)}</p></div>
+      </div></div>`;});
+  $("#itemlist").innerHTML=out;
+}
+let itemCat="all",itemSup=null;
+function applyItemFilter(){
+  $$(".itemcard").forEach(c=>{
+    const ok=(itemCat==="all"||c.dataset.cat===itemCat)&&(!itemSup||c.dataset.sup===itemSup);
+    c.style.display=ok?"":"none";});
+  // hide a category heading when nothing under it is visible
+  $$(".itemcat").forEach(h=>{
+    const any=$$(`.itemcard[data-cat="${h.dataset.cat}"]`).some(c=>c.style.display!=="none");
+    h.style.display=any?"":"none";});
+}
+
+/* ── Cloud comparison ── */
+function buildCloud(){
+  const sel=CLOUDKEY;
+  $("#cloud-intro").innerHTML = sel==="neutral"
+    ? `You are viewing the <b>cloud-neutral</b> reading. Switch the toggle in the header to AWS or Azure and every cloud-specific term on this page — storage services, Kubernetes distribution, managed databases, GPU instance families, deployment tooling — swaps to that platform's names, and the matching column below is emphasised. Both columns stay visible so you can see what you are trading away.`
+    : `Showing the <b>${CLOUD[sel].label}</b> reading. Cloud-specific terms across every tab now use ${CLOUD[sel].label} names, marked with a dotted underline. The other column remains visible for comparison.`;
+  $("#cloud-table tbody").innerHTML=CLOUDROWS.map(r=>
+    `<tr><th scope="row">${r[0]}</th>
+      <td class="${sel==='aws'?'csel':sel==='azure'?'cdim':''}">${r[1]}</td>
+      <td class="${sel==='azure'?'csel':sel==='aws'?'cdim':''}">${r[2]}</td></tr>`).join("");
+}
+
+/* ── Maturity ── */
+function buildLadder(){
+  $("#ladder").innerHTML=LADDER.map(l=>
+    `<div class="rung" data-lv="${l.lv}"><div class="lv">${l.lv}</div>
+     <div class="mid"><h3>${l.t}</h3><p>${tok(l.d)}</p></div>
+     <div class="prods">${l.p.map(id=>chip(id)).join("")}</div></div>`).join("");
+}
+
+/* ── Use cases ── */
+function buildUseCases(){
+  $("#ucgrid").innerHTML=USECASES.map(u=>
+    `<div class="uc"><h3>${u.t}</h3><div class="q">&ldquo;${u.q}&rdquo;</div>
+     <div class="need">${tok(u.need)}</div>
+     <div class="plist">${u.p.map(id=>chip(id)).join("")}</div>
+     <div class="watch"><b>Watch:</b> ${tok(u.w)}</div></div>`).join("");
+}
+
+/* ── Key gaps ── */
+const SEVLABEL={high:"Blocks a stated use case",med:"Forces custom work",watch:"Watch / messaging"};
+const AREALABEL={field:"Field &amp; mobile",data:"Data &amp; formats",api:"APIs &amp; integration",serve:"Serving &amp; 3D layers",story:"Positioning"};
+const SEVRANK={high:0,med:1,watch:2};
+function buildGaps(){
+  $("#gaplist").innerHTML=[...GAPS].sort((a,b)=>SEVRANK[a.sev]-SEVRANK[b.sev]).map(g=>
+    `<div class="gapcard" data-sev="${g.sev}" data-area="${g.area}">
+       <header><h3>${g.t}</h3>
+         <span class="sev ${g.sev}">${SEVLABEL[g.sev]}</span>
+         <span class="area">${AREALABEL[g.area]}</span></header>
+       <div class="ev">${tok(g.ev)}</div>
+       <div class="cols">
+         <div><h4>What we do today</h4>${tok(g.today)}</div>
+         <div><h4>What would close it</h4>${tok(g.close)}</div>
+       </div></div>`).join("");
+}
+let gapSev="all",gapArea=null;
+function applyGapFilter(){
+  $$(".gapcard").forEach(c=>{
+    const ok=(gapSev==="all"||c.dataset.sev===gapSev)&&(!gapArea||c.dataset.area===gapArea);
+    c.style.display=ok?"":"none";});
+}
+
+/* ═══════════════ MASTER RENDER ═══════════════
+   Everything that can contain a cloud-specific term is rebuilt here, so the
+   AWS, Azure and neutral readings are literally the same content with one
+   substitution pass — they cannot drift. */
+function renderAll(){
+  document.body.dataset.cloud=CLOUDKEY;
+  buildSystem(); applySysFilter();
+  buildPipe();   renderFlows();
+  buildItems();  applyItemFilter();
+  buildDeploy(); applyDepFilter(); buildCloud();
+  buildLadder(); buildUseCases();
+  buildGaps();   applyGapFilter();
+}
+
+/* ── Events (delegated, so re-rendered content stays live) ── */
+const fly=$("#flyout");
+document.addEventListener("click",e=>{
+  /* NOTE: scope this to .cbtn. <body> also carries a data-cloud attribute for CSS,
+     so a bare [data-cloud] selector matches every click in the document and
+     swallows every other handler below. */
+  const cloudBtn=e.target.closest(".cbtn[data-cloud]");
+  if(cloudBtn){
+    CLOUDKEY=cloudBtn.dataset.cloud;
+    $$(".cbtn[data-cloud]").forEach(x=>x.classList.toggle("active",x===cloudBtn));
+    renderAll(); return;
+  }
+  const sysBtn=e.target.closest("[data-sysfilter]");
+  if(sysBtn){
+    $$("[data-sysfilter]").forEach(x=>x.classList.remove("active"));sysBtn.classList.add("active");
+    sysFilter=sysBtn.dataset.sysfilter;applySysFilter();return;
+  }
+  const flowBtn=e.target.closest("[data-flow]");
+  if(flowBtn){
+    const k=flowBtn.dataset.flow;
+    if(activeFlows.has(k)){activeFlows.delete(k);flowBtn.classList.remove("active");}
+    else{activeFlows.add(k);flowBtn.classList.add("active");}
+    renderFlows();return;
+  }
+  if(e.target.closest("#flow-clear")){
+    activeFlows.clear();$$("[data-flow]").forEach(b=>b.classList.remove("active"));renderFlows();return;
+  }
+  const depBtn=e.target.closest("[data-depfilter]");
+  if(depBtn){
+    $$("[data-depfilter]").forEach(x=>x.classList.remove("active"));depBtn.classList.add("active");
+    depFilter=depBtn.dataset.depfilter;applyDepFilter();return;
+  }
+  const icBtn=e.target.closest("[data-itemcat]");
+  if(icBtn){
+    $$("[data-itemcat]").forEach(x=>x.classList.remove("active"));icBtn.classList.add("active");
+    itemCat=icBtn.dataset.itemcat;applyItemFilter();return;
+  }
+  const isBtn=e.target.closest("[data-itemsup]");
+  if(isBtn){
+    const s=isBtn.dataset.itemsup;
+    if(itemSup===s){itemSup=null;isBtn.classList.remove("active");}
+    else{$$("[data-itemsup]").forEach(x=>x.classList.remove("active"));itemSup=s;isBtn.classList.add("active");}
+    applyItemFilter();return;
+  }
+  const gsBtn=e.target.closest("[data-gapfilter]");
+  if(gsBtn){
+    $$("[data-gapfilter]").forEach(x=>x.classList.remove("active"));gsBtn.classList.add("active");
+    gapSev=gsBtn.dataset.gapfilter;applyGapFilter();return;
+  }
+  const gaBtn=e.target.closest("[data-gaparea]");
+  if(gaBtn){
+    const a=gaBtn.dataset.gaparea;
+    if(gapArea===a){gapArea=null;gaBtn.classList.remove("active");}
+    else{$$("[data-gaparea]").forEach(x=>x.classList.remove("active"));gapArea=a;gaBtn.classList.add("active");}
+    applyGapFilter();return;
+  }
+  const tab=e.target.closest(".c-tab");
+  if(tab){
+    $$(".c-tab").forEach(x=>x.setAttribute("aria-selected","false"));
+    tab.setAttribute("aria-selected","true");
+    $$(".view").forEach(v=>v.classList.remove("active"));
+    $("#view-"+tab.dataset.view).classList.add("active");
+    window.scrollTo({top:0,behavior:"smooth"});return;
+  }
+  const goto=e.target.closest("[data-goto]");
+  if(goto){
+    e.preventDefault();
+    const noteId=goto.dataset.note;
+    $(`.c-tab[data-view="${goto.dataset.goto}"]`).click();
+    fly.classList.remove("open");
+    if(noteId){const n=document.getElementById("n"+noteId);
+      if(n){n.scrollIntoView({behavior:"smooth",block:"center"});
+        n.style.background="#FFF7E6";setTimeout(()=>n.style.background="",2200);}}
+    return;
+  }
+  const c=e.target.closest(".chip");
+  if(!c) return;
+  const p=CATALOG[c.dataset.id]; if(!p) return;
+  const statusLabel={ga:"Generally available",new:"New in 2026",beta:"Beta / early adopter",dep:"Deprecated",custom:"Custom / solution-specific",ext:"External to Esri"}[p.status];
+  const dep={desktop:"Desktop / Pro",ent:"ArcGIS Enterprise",k8s:"Enterprise on Kubernetes",online:"ArcGIS Online",saas:"SaaS",mobile:"Mobile",dev:"Developer / SDK",ext:"External"};
+  const flowsIn=Object.keys(FLOWS).filter(k=>Object.values(FLOWS[k].p).some(a=>a.includes(c.dataset.id)));
+  const stagesIn=[...(STAGES_OF[c.dataset.id]||[])]
+    .sort((a,b)=>STAGES.findIndex(s=>s[0]===a)-STAGES.findIndex(s=>s[0]===b));
+  const stageName=Object.fromEntries(STAGES);
+  $("#fly-title").innerHTML=p.n;
+  $("#fly-body").innerHTML=`
+   <dl>
+     <dt>Status</dt><dd><span class="pill ${p.status!=='ga'?'b':''}">${statusLabel}</span>
+       ${p.cloud?`<span class="pill b">${p.cloud.toUpperCase()} only</span>`:""}</dd>
+     <dt>What it does</dt><dd>${tok(p.d)}</dd>
+     <dt>Key points</dt><dd><ul style="margin:.2rem 0 0;padding-inline-start:1.1rem">${p.k.map(x=>`<li style="margin-bottom:.25rem">${tok(x)}</li>`).join("")}</ul></dd>
+     <dt>Pipeline stages</dt><dd>${stagesIn.map(s=>`<span class="pill${stagesIn.length>1?' b':''}">${stageName[s]}</span>`).join("")}
+       ${stagesIn.length>1?`<div style="font-size:.72rem;color:var(--calcite-color-text-3);margin-top:.25rem">Does real work in ${stagesIn.length} stages.</div>`:""}</dd>
+     <dt>Runs on</dt><dd>${p.deploy.map(d=>`<span class="pill">${dep[d]}</span>`).join("")}</dd>
+     ${flowsIn.length?`<dt>Appears in these data flows</dt><dd>${flowsIn.map(k=>`<span class="pill b">${FLOWS[k].n}</span>`).join("")}</dd>`:""}
+     ${p.note?`<dt>Release caveat</dt><dd>See note <a href="#" data-goto="notes" data-note="${p.note}">[${p.note}]</a> in Release Notes.</dd>`:""}
+   </dl>`;
+  fly.classList.add("open");fly.setAttribute("aria-hidden","false");
+});
+$("#fly-close").addEventListener("click",()=>{fly.classList.remove("open");fly.setAttribute("aria-hidden","true");});
+document.addEventListener("keydown",e=>{if(e.key==="Escape")fly.classList.remove("open");});
+
+renderAll();
+</script>
+</body>
+</html>
